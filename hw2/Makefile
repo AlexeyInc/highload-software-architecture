@@ -1,5 +1,5 @@
 r:
 	docker-compose down && docker-compose up -d
 
-c:
+uapp:
 	docker-compose build --no-cache app
