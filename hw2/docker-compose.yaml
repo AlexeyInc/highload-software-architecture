@@ -2,7 +2,7 @@ services:
 
   telegraf:
     platform: linux/amd64
-    image: telegraf:latest # TODO: test and use some alpine version 
+    image: telegraf:1.33.0
     volumes:
       - ./telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
       - /var/run/docker.sock:/var/run/docker.sock
@@ -11,11 +11,11 @@ services:
     links:
       - influxdb
     environment:
-      - HOSTNAME=alexTest
+      - HOSTNAME=alex-hw2
     entrypoint: "telegraf"
     ports:
       - '127.0.0.1:8125:8125/udp'
-    # restart: unless-stopped
+    restart: unless-stopped
 
   influxdb:
     platform: linux/amd64
@@ -55,23 +55,15 @@ services:
     image: elasticsearch:7.17.10 
     environment:
       - discovery.type=single-node
-      - ES_JAVA_OPTS=-Xms512m -Xmx512m
     ports:
       - "9200:9200"
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9200/_cluster/health"]
-      interval: 10s
-      timeout: 10s
-      retries: 2
 
   app:
     build:
       context: .
       dockerfile: Dockerfile
-    environment:
-      - MONGO_URI=mongodb://mongo:27017
-      - ELASTICSEARCH_URL=http://elasticsearch:9200 # TODO: move to env
+    env_file: configuration.env
     depends_on:
       - mongo
       - elasticsearch
@@ -86,7 +78,6 @@ services:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
       - app
-
 
 volumes:
   grafana_data: {}
