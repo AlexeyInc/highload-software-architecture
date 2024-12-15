@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"runtime/debug"
 	"time"
 
 	"github.com/elastic/go-elasticsearch/v8"
@@ -21,31 +22,31 @@ var (
 )
 
 func main() {
-	ctx := context.Background()
-	// Initialize MongoDB
+	var (
+		ctx = context.Background()
+		err error
+	)
 	mongoURI := os.Getenv("MONGO_URI")
-	// mongoURI := "mongodb://localhost:27017"
-	mongoClient, err := mongo.Connect(ctx, options.Client().ApplyURI(mongoURI))
+	mongoClient, err = mongo.Connect(ctx, options.Client().ApplyURI(mongoURI))
 	if err != nil {
 		log.Fatalf("Failed to connect to MongoDB: %v", err)
 	}
 	defer mongoClient.Disconnect(ctx)
 
-	// Initialize Elasticsearch
-	// elasticURI := os.Getenv("ELASTIC_URI")
-	// elasticURI := "http://localhost:9200"
 	elasticClient, err = elasticsearch.NewDefaultClient()
 	if err != nil {
 		log.Fatalf("Error creating Elasticsearch client: %v", err)
 	}
 
-	http.HandleFunc("/", handleRequest)
+	mux := http.NewServeMux()
+	mux.HandleFunc("/", handleRequest)
 
 	log.Println("Starting server on :8081")
-	log.Fatal(http.ListenAndServe(":8081", nil))
+	log.Fatal(http.ListenAndServe(":8081", RecoveryMiddleware(mux)))
 }
 
 func handleRequest(w http.ResponseWriter, r *http.Request) {
+
 	start := time.Now()
 
 	collection := mongoClient.Database("testdb").Collection("testcol")
@@ -73,4 +74,16 @@ func handleRequest(w http.ResponseWriter, r *http.Request) {
 	// Respond
 	duration := time.Since(start).Milliseconds()
 	fmt.Fprintf(w, "Request handled in %d ms\n", duration)
+}
+
+func RecoveryMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer func() {
+			if err := recover(); err != nil {
+				log.Printf("Panic recovered: %v\n%s", err, debug.Stack())
+				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			}
+		}()
+		next.ServeHTTP(w, r)
+	})
 }
