@@ -33,6 +33,7 @@ services:
     platform: linux/amd64
     depends_on:
       - influxdb
+      - app
     env_file: configuration.env
     links:
       - influxdb
