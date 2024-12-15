@@ -1,56 +1,22 @@
 services:
-  mongo:
-    image: mongo:latest 
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongo_data:/data/db
-
-  elasticsearch:
-    image: elasticsearch:7.17.10
-    environment:
-      - discovery.type=single-node
-    ports:
-      - "9200:9200"
-
-  app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    environment:
-      - MONGO_URI=http://mongo:27017
-      - ELASTIC_URI=http://elasticsearch:9200
-    depends_on:
-      - mongo
-      - elasticsearch
-
-  nginx:
-    image: nginx:1.27.3-alpine
-    ports:
-      - "8080:80"
-    volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
-    depends_on:
-      - app
 
   telegraf:
     platform: linux/amd64
-    image: telegraf:1.31-alpine
-    restart: unless-stopped
-    user: root
-    entrypoint: "telegraf"
+    image: telegraf:1.31-alpine 
+    # user: root
+    # entrypoint: "telegraf"
     volumes:
-      - ./telegraf/etc/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+      - ./telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
     depends_on:
-      - app
       - influxdb
     links:
       - influxdb
     environment:
       - HOSTNAME=alexTest
     ports:
-    - '127.0.0.1:8125:8125/udp'
+      - '127.0.0.1:8125:8125/udp'
+    restart: unless-stopped
 
   influxdb:
     platform: linux/amd64
@@ -77,6 +43,50 @@ services:
       - grafana_data:/var/lib/grafana
       - ./grafana/provisioning/:/etc/grafana/provisioning/
       - ./grafana/dashboards/:/var/lib/grafana/dashboards/
+  mongo:
+    image: mongo:latest 
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    restart: unless-stopped
+
+  elasticsearch:
+    image: elasticsearch:7.17.10 
+    environment:
+      - discovery.type=single-node
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+    ports:
+      - "9200:9200"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9200/_cluster/health"]
+      interval: 10s
+      timeout: 10s
+      retries: 2
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - MONGO_URI=mongodb://mongo:27017
+      - ELASTIC_URI=http://elasticsearch:9200
+    depends_on:
+      - mongo
+      - elasticsearch
+    ports:
+      - "8081:8081"
+
+  nginx:
+    image: nginx:1.27.3-alpine
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - app
+
 
 volumes:
   grafana_data: {}
