@@ -79,6 +79,13 @@ services:
     depends_on:
       - app
 
+  ab:
+    image: jordi/ab
+    container_name: apache_benchmark
+    depends_on:
+      - app
+    entrypoint: ["/bin/bash", "-c", "sleep infinity"]
+
 volumes:
   grafana_data: {}
   influxdb_data: {}
