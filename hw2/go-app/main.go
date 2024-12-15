@@ -1,21 +1,23 @@
 package main
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"time"
 
-	"github.com/olivere/elastic/v7"
+	"github.com/elastic/go-elasticsearch/v8"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 var (
 	mongoClient   *mongo.Client
-	elasticClient *elastic.Client
+	elasticClient *elasticsearch.Client
 )
 
 func main() {
@@ -30,14 +32,14 @@ func main() {
 	defer mongoClient.Disconnect(ctx)
 
 	// Initialize Elasticsearch
-	elasticURI := os.Getenv("ELASTIC_URI")
+	// elasticURI := os.Getenv("ELASTIC_URI")
 	// elasticURI := "http://localhost:9200"
-	elasticClient, err = elastic.NewClient(elastic.SetURL(elasticURI))
+	elasticClient, err = elasticsearch.NewDefaultClient()
 	if err != nil {
-		log.Fatalf("Failed to connect to Elasticsearch: %v", err)
+		log.Fatalf("Error creating Elasticsearch client: %v", err)
 	}
 
-	// http.HandleFunc("/", handleRequest)
+	http.HandleFunc("/", handleRequest)
 
 	log.Println("Starting server on :8081")
 	log.Fatal(http.ListenAndServe(":8081", nil))
@@ -46,22 +48,27 @@ func main() {
 func handleRequest(w http.ResponseWriter, r *http.Request) {
 	start := time.Now()
 
-	// Query MongoDB
-	collection := mongoClient.Database("exampledb").Collection("example")
-	_, err := collection.CountDocuments(context.TODO(), map[string]interface{}{})
+	collection := mongoClient.Database("testdb").Collection("testcol")
+	_, err := collection.InsertOne(nil, map[string]string{"ping": "pong", "timestamp": time.Now().String()})
 	if err != nil {
-		http.Error(w, "MongoDB query failed", http.StatusInternalServerError)
-		log.Println("MongoDB query failed:", err)
+		http.Error(w, "MongoDB Insert Failed", http.StatusInternalServerError)
 		return
 	}
+	fmt.Fprintln(w, "MongoDB Ping Successful")
 
-	// Query Elasticsearch
-	_, err = elasticClient.Search().Index("exampleindex").Do(context.TODO())
+	req := map[string]string{"ping": "pong", "timestamp": time.Now().String()}
+	// Encode request body to JSON
+	reqBody, err := json.Marshal(req)
 	if err != nil {
-		http.Error(w, "Elasticsearch query failed", http.StatusInternalServerError)
-		log.Println("Elasticsearch query failed:", err)
+		http.Error(w, "Failed to encode JSON", http.StatusInternalServerError)
 		return
 	}
+	res, err := elasticClient.Index("testindex", bytes.NewReader(reqBody))
+	if err != nil || res.IsError() {
+		http.Error(w, "Elasticsearch Ping Failed", http.StatusInternalServerError)
+		return
+	}
+	fmt.Fprintln(w, "Elasticsearch Ping Successful")
 
 	// Respond
 	duration := time.Since(start).Milliseconds()
