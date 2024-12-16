@@ -86,6 +86,7 @@ services:
     image: jordi/ab
     platform: linux/amd64
     container_name: apache_benchmark
+    network_mode: "host"
     depends_on:
       - app
     entrypoint: ["/bin/sh", "-c", "sleep 9999999"]
