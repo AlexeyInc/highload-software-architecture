@@ -1,4 +1,4 @@
-module hw2
+module hw2-tig-stack
 
 go 1.22.5
 
