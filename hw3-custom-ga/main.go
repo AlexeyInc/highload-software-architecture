@@ -88,7 +88,7 @@ func sendToGA4(client *resty.Client, rate float64) error {
 		return fmt.Errorf("failed to send request to GA4: %v", err)
 	}
 
-	if resp.StatusCode() != http.StatusOK {
+	if resp.StatusCode() != http.StatusOK && resp.StatusCode() != http.StatusNoContent {
 		return fmt.Errorf("GA4 status: %s", resp.Status())
 	}
 
