@@ -1,8 +1,10 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/go-resty/resty/v2"
@@ -23,6 +25,17 @@ type ExchangeRate struct {
 }
 
 func main() {
+	intervalFlag := flag.Int("interval", 10, "Interval in minutes between data fetch and GA4 send")
+	flag.Parse()
+
+	interval := time.Duration(*intervalFlag) * time.Minute
+	if interval <= 0 {
+		fmt.Println("Interval must be greater than 0")
+		os.Exit(1)
+	}
+
+	fmt.Printf("Exchange rate will be send each %d minutes\n", *intervalFlag)
+
 	restyClient := resty.New().SetTimeout(10 * time.Second)
 
 	for {
@@ -40,7 +53,7 @@ func main() {
 			fmt.Printf("Error: %v\n", err)
 		}
 
-		time.Sleep(10 * time.Minute)
+		time.Sleep(interval * time.Minute)
 	}
 }
 
