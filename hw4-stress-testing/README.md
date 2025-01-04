@@ -79,6 +79,6 @@ Shortest transaction:	       10.00 ms
 ```
 
 ### Summary
-	•	Availability: The application exhibits excellent reliability with 100% availability across all concurrency levels.
-	•	Response Time: Performance remains good at lower and moderate concurrency levels but degrades noticeably under high concurrency.
-	•	Throughput: Throughput is consistent and scales with concurrency until reaching a plateau at higher levels, indicating a bottleneck in the system.
+- **Availability**: The application exhibits excellent reliability with 100% availability across all concurrency levels.
+- **Response** Time: Performance remains good at lower and moderate concurrency levels but degrades noticeably under high concurrency.
+- **Throughput**: Throughput is consistent and scales with concurrency until reaching a plateau at higher levels, indicating a bottleneck in the system.
