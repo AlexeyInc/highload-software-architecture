@@ -1,0 +1,22 @@
+services:
+  mongo:
+    image: mongo:latest 
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    container_name: mongodb
+    restart: unless-stopped
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file: configuration.env
+    depends_on:
+      - mongo
+    ports:
+      - "8081:8081"
+
+volumes:
+  mongo_data: {} 
