@@ -58,7 +58,8 @@ docker exec -it <container_name> mysql -u testuser -p
 USE testdb;
 SHOW INDEX FROM users;
 ```
-![Screenshot 2025-01-25 at 19 28 04](https://github.com/user-attachments/assets/001f7907-e0bf-43ce-aa8d-5f6097e58425)
+
+![Screenshot 2025-01-25 at 20 13 40](https://github.com/user-attachments/assets/1a827146-8128-4424-a972-1ce3b6abb2fe)
 
 Run SELECT query with BTREE index:
 ```
@@ -119,31 +120,43 @@ curl -X POST "http://localhost:8080/changeFlushLogSetting?innodb_flush_log_at_tr
 ```
 Expected resonse:  `innodb_flush_log_at_trx_commit set to 0`
 
+```
 siege -c20 -t20S -f urls.txt
-img 30205    hits
+```
+<img width="437" alt="Screenshot 2025-01-25 at 20 32 16" src="https://github.com/user-attachments/assets/e0909e6e-0823-4245-8c18-e9bd845b126f" />
 
+```
 curl -X POST "http://localhost:8080/changeFlushLogSetting?innodb_flush_log_at_trx_commit=1"
-innodb_flush_log_at_trx_commit set to 1
+```
+Expected resonse:  `innodb_flush_log_at_trx_commit set to 1`
 
-img 28790    hits
+<img width="437" alt="Screenshot 2025-01-25 at 20 33 49" src="https://github.com/user-attachments/assets/84886eb7-9de6-409b-be62-cd27661291ea" />
 
+```
 curl -X POST "http://localhost:8080/changeFlushLogSetting?innodb_flush_log_at_trx_commit=2"
-innodb_flush_log_at_trx_commit set to 2
+```
+Expected resonse:  `innodb_flush_log_at_trx_commit set to 2`
 
-img 30902    hits
+<img width="432" alt="Screenshot 2025-01-25 at 20 34 58" src="https://github.com/user-attachments/assets/3ee8cfa1-db73-4890-9790-29451aeff3e8" />
 
+
+
+```
 siege -c40 -t20S -f urls.txt
+```
 
-innodb_flush_log_at_trx_commit set to 0
-43027    hits
+Results for `innodb_flush_log_at_trx_commit set to 0`
+
+<img width="439" alt="Screenshot 2025-01-25 at 20 36 28" src="https://github.com/user-attachments/assets/3fa1f05d-d908-49ac-8d85-051e0762410a" />
+
+Results for `innodb_flush_log_at_trx_commit set to 1`
+
+<img width="437" alt="Screenshot 2025-01-25 at 20 37 34" src="https://github.com/user-attachments/assets/7da1aea8-2100-4f21-9619-416fa0b15912" />
 
 
-innodb_flush_log_at_trx_commit set to 1
-img 25682    hits
+Results for `innodb_flush_log_at_trx_commit set to 2`
 
-innodb_flush_log_at_trx_commit set to 2
-img 45236    hits
-
+<img width="433" alt="Screenshot 2025-01-25 at 20 38 39" src="https://github.com/user-attachments/assets/f4b92934-8faf-473f-b5d7-7c6e4e35bb43" />
 
 
 Expected Results
