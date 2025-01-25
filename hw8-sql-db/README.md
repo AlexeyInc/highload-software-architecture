@@ -29,6 +29,7 @@ Make POST request
 curl -X POST http://localhost:8080/insertUsers
 ```
 *This might take up to 5 minutes to respond.*
+
 ![Screenshot 2025-01-25 at 19 58 36](https://github.com/user-attachments/assets/b30758ae-6584-4cd3-97a1-6604adf5bd01)
 
 ___
@@ -40,6 +41,7 @@ ___
 curl -I http://localhost:8080/measureSelectPerformance/
 ```
 Results: 
+
 ![Screenshot 2025-01-25 at 20 01 42](https://github.com/user-attachments/assets/1b800797-b550-4bfc-b12b-ca27cd37157b)
 
 2. BTREE index
@@ -64,6 +66,7 @@ curl -I http://localhost:8080/measureSelectPerformance/withBTREE
 ```
 
 Results:
+
 ![Screenshot 2025-01-25 at 20 18 04](https://github.com/user-attachments/assets/2e27cd67-0703-4322-894b-9ce80e0177a1)
 
 Remove index 
