@@ -10,7 +10,7 @@ It covers the following use cases:
    - HASH index
 3. Testing INSERT performance with different `innodb_flush_log_at_trx_commit` configurations.
 
-The program is built using Go, and the (MySQL env is set up with docker-compose).
+App built using Go and MySQL env is set up with docker-compose.
 
 ### How to Use
 
@@ -28,41 +28,93 @@ Make POST request
 ```
 curl -X POST http://localhost:8080/insertUsers
 ```
-(Might take up to 5 minutes to respond)
+*This might take up to 5 minutes to respond.*
+![Screenshot 2025-01-25 at 19 58 36](https://github.com/user-attachments/assets/b30758ae-6584-4cd3-97a1-6604adf5bd01)
 
+___
 
+### SELECT quesries with different indexing strategies: 
+
+1. No index 
+```
+curl -I http://localhost:8080/measureSelectPerformance/
+```
+Results: 
+![Screenshot 2025-01-25 at 20 01 42](https://github.com/user-attachments/assets/1b800797-b550-4bfc-b12b-ca27cd37157b)
+
+2. BTREE index
+
+Creating index
+```
 curl "http://localhost:8080/manageIndex?indexType=BTREE&action=create"
-BTREE index created successfully
+```
+Expected resonse: `BTREE index created successfully`
 
-curl "http://localhost:8080/manageIndex?indexType=HASH&action=delete"
-
-Optional:
+(Optional) Check that index has been created:
+```
 docker exec -it <container_name> mysql -u testuser -p
 USE testdb;
 SHOW INDEX FROM users;
+```
+![Screenshot 2025-01-25 at 19 28 04](https://github.com/user-attachments/assets/001f7907-e0bf-43ce-aa8d-5f6097e58425)
 
+Run SELECT query with BTREE index:
+```
 curl -I http://localhost:8080/measureSelectPerformance/withBTREE
+```
 
-img 99.32975ms
+Results:
+![Screenshot 2025-01-25 at 20 18 04](https://github.com/user-attachments/assets/2e27cd67-0703-4322-894b-9ce80e0177a1)
 
+Remove index 
+```
 curl "http://localhost:8080/manageIndex?indexType=BTREE&action=delete"
-BTREE index deleted successfully.%   
+```
+Expected resonse: `BTREE index deleted successfully.`
 
-curl "http://localhost:8080/manageIndex?indexType=HASH&action=create" 
-HASH index created successfully.% 
+3. HASH index
 
-img 32.968667ms
+Creating index
+```
+curl "http://localhost:8080/manageIndex?indexType=HASH&action=create"
+```
+Expected resonse: `HASH index created successfully.`
 
-curl "http://localhost:8080/manageIndex?indexType=HASH&action=delete" 
-HASH index deleted successfully.%   
+Run SELECT query with HASH index:
+```
+curl -I http://localhost:8080/measureSelectPerformance/withHASH
+```
+![Screenshot 2025-01-25 at 20 22 24](https://github.com/user-attachments/assets/b062cf28-cdac-4b2f-81d9-f12a6182308e)
 
------
 
-Run Siege to simulate concurrent requests:
+Remove index 
+```
+curl "http://localhost:8080/manageIndex?indexType=HASH&action=delete"
+```
+Expected resonse: `HASH index deleted successfully.`
+
+**Observations:**
+1. First Query is Slow, Subsequent Queries are Faster:
+Reasons:
+- InnoDB Buffer Pool Caching. When we execute a query, MySQL reads the necessary rows from disk into memory (the InnoDB Buffer 	Pool) for the first query. For subsequent queries, the data is already loaded in memory (buffer pool), so no additional disk I/O is required, making them much faster.
+- Even without indexes, MySQL may internally optimize and reorder queries when repeatedly executed. This is particularly true if the query is processed within the same connection/session.
+3. HASH Index is Faster Than BTREE Index
+Reasons:
+- HASH indexes can still be faster than BTREE if the range is narrow, but they are generally not as efficient as BTREE for wide ranges.
+- HASH indexes use a hash function to map the indexed column’s values directly to buckets. This allows near-instant lookup for matching rows in narrow ranges.
+
+  
+
+___
+
+### Run Siege to simulate concurrent INSERT requests:
+```
 siege -c20 -t20S -f urls.txt
-
+```
+```
 curl -X POST "http://localhost:8080/changeFlushLogSetting?innodb_flush_log_at_trx_commit=0"
-innodb_flush_log_at_trx_commit set to 0
+```
+Expected resonse:  `innodb_flush_log_at_trx_commit set to 0`
 
 siege -c20 -t20S -f urls.txt
 img 30205    hits
