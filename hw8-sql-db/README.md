@@ -117,7 +117,7 @@ HASH Index (`idx_dob_hash`):
 ![Screenshot 2025-01-26 at 13 05 52](https://github.com/user-attachments/assets/91695581-20cf-46f7-9cff-fb975f0dccf0)
 
 
-Both indexes have the same cardinality and range, and identical query structures were used. Yet, the “HASH” index consistently performs faster.
+Both indexes have the same cardinality and range, and identical query structures were used. Yet, the HASH index consistently performs faster.
 
 **Potential Causes**
 
@@ -146,6 +146,7 @@ SHOW PROFILE ALL FOR QUERY 2;
 The profiling tests for both queries (BTREE and HASH indices) reveal negligible differences in CPU usage and overall duration. While the “HASH” index shows slightly better profiling metrics, the observed performance differences cannot be fully explained by these numbers alone.
 
 *Set profiling with adjusted date range and query’s modified LIMIT.*
+**Results:** 
 
 ![Screenshot 2025-01-26 at 13 39 37](https://github.com/user-attachments/assets/e4177e1c-1f5c-49e9-b160-ff16cda7658d)
 
@@ -155,20 +156,20 @@ The profiling tests for both queries (BTREE and HASH indices) reveal negligible 
 ![Screenshot 2025-01-26 at 13 37 26](https://github.com/user-attachments/assets/0095a99b-66a0-4663-9d54-ea5b9640e81d)
 
 
-Scenario 1: RANGE 1980-2015 LIMIT 12,000
-1.	HASH Index (idx_dob_hash)
+#### Scenario 1: RANGE 1980-2015 LIMIT 12,000
+*1.	HASH Index (idx_dob_hash)*
    - Actual time: 0.764..1.548 seconds 
-2.	BTREE Index (idx_dob_btree)
+**2.	BTREE Index (idx_dob_btree)**
    - Actual time: 1.06..1.21 seconds 
-Scenario 2: RANGE 1980-2017 LIMIT 50,000
-1.	HASH Index (idx_dob_hash)
+#### Scenario 2: RANGE 1980-2017 LIMIT 50,000
+*1.	HASH Index (idx_dob_hash)*
    - Actual time: 0.787..5.395 seconds
-2.	BTREE Index (idx_dob_btree)
+**2.	BTREE Index (idx_dob_btree)**
    - Actual time: 0.953..0.669 seconds
-Scenario 3: RANGE 1980-2018 LIMIT 100,000
-1.	HASH Index (idx_dob_hash)
+#### Scenario 3: RANGE 1980-2018 LIMIT 100,000
+*1.	HASH Index (idx_dob_hash)*
    - Actual time: 0.995..10.585 seconds 
-2.	BTREE Index (idx_dob_btree)
+**2.	BTREE Index (idx_dob_btree)**
    - Actual time: 2.65..11.101 seconds 
 
 **Summary of Differences:**
@@ -229,7 +230,7 @@ Results for `innodb_flush_log_at_trx_commit set to 2`
 <img width="433" alt="Screenshot 2025-01-25 at 20 38 39" src="https://github.com/user-attachments/assets/f4b92934-8faf-473f-b5d7-7c6e4e35bb43" />
 
 
-Quick Overview:
+#### Quick Overview:
 - Setting innodb_flush_log_at_trx_commit = 0 focuses on performance by skipping log flushes to disk after each transaction, which increases the risk of data loss in the event of a crash.
 - Setting innodb_flush_log_at_trx_commit = 1 prioritizes durability by flushing the log after every commit, but this significantly reduces performance.
 - Setting innodb_flush_log_at_trx_commit = 2 provides a balanced approach, flushing the log less frequently (once per second), offering a compromise between performance and durability.
