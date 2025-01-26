@@ -90,20 +90,20 @@ Remove index
 curl "http://localhost:8080/manageIndex?indexType=HASH&action=delete"
 ```
 
-#### Observations:
+### Observations:
 
-**1. First Query is Slow, Subsequent Queries are Faster.**
+#### 1. First Query is Slow, Subsequent Queries are Faster.**
 
-Reasons:
+**Reasons:**
 - (With indexes) InnoDB Buffer Pool Caching. When we execute a query, MySQL reads the necessary rows from disk into memory (the InnoDB Buffer Pool) for the first query. For subsequent queries, the data is already loaded in memory (buffer pool), so no additional disk I/O is required, making them much faster.
 - (No indexes) Even without indexes, MySQL may internally optimize and reorder queries when repeatedly executed. This is particularly true if the query is processed within the same connection/session.
 
-**2. HASH index is faster than BTREE index**
+#### 2. HASH index is faster than BTREE index
 
 This outcome was unexpected, given that BTREE indexes are specifically optimized for range queries.
 The observed performance advantage of HASH indexes over BTREE is nuanced and requires deeper exploration.
 
-*__Important note:__ MySQL’s InnoDB engine doesn’t support native HASH indexes, created HASH index is still implemented as Index_type BTREE under the hood.*
+*__Important note:__ MySQL InnoDB engine doesn’t support native HASH indexes, created HASH index is still implemented as Index_type BTREE under the hood.*
 
 Results from `EXPLAIN ANALYZE` show:
 
@@ -121,13 +121,13 @@ Both indexes have the same cardinality and range, and identical query structures
 
 **Potential Causes**
 
-The faster performance of the “HASH” index may be attributed to the following:
-1. Query Optimizer Behavior: MySQL may assign different cost estimations or prioritize execution plans for the “HASH” index, even though it is implemented as a BTREE.
-2. Subtle Metadata Differences: The USING HASH keyword could influence MySQL’s internal handling of the index, leading to optimizations such as prefetching or read-ahead operations.
+The faster performance of the HASH index may be attributed to the following:
+1. Query Optimizer Behavior: MySQL may assign different cost estimations or prioritize execution plans for the HASH index, even though it is implemented as a BTREE.
+2. Subtle Metadata Differences: The USING HASH keyword could influence MySQLs internal handling of the index, leading to optimizations such as prefetching or read-ahead operations.
 3. Range Handling: HASH-like indexing may provide advantages for narrow range lookups due to differences in query planning, even though it is not designed for wide ranges.
 
 
-Set profiling for booth quesries:
+**Set profiling for booth quesries:**
 
 ```
 SET PROFILING = 1;
@@ -143,9 +143,10 @@ SHOW PROFILE ALL FOR QUERY 2;
 
 **Profiling Results**
 
-The profiling tests for both queries (BTREE and HASH indices) reveal negligible differences in CPU usage and overall duration. While the “HASH” index shows slightly better profiling metrics, the observed performance differences cannot be fully explained by these numbers alone.
+The profiling tests for both queries (BTREE and HASH indices) reveal negligible differences in CPU usage and overall duration. While the HASH index shows slightly better profiling metrics, the observed performance differences cannot be fully explained by these numbers alone.
 
 *Set profiling with adjusted date range and query’s modified LIMIT.*
+
 **Results:** 
 
 ![Screenshot 2025-01-26 at 13 39 37](https://github.com/user-attachments/assets/e4177e1c-1f5c-49e9-b160-ff16cda7658d)
@@ -157,18 +158,23 @@ The profiling tests for both queries (BTREE and HASH indices) reveal negligible 
 
 
 #### Scenario 1: RANGE 1980-2015 LIMIT 12,000
-*1.	HASH Index (idx_dob_hash)*
-   - Actual time: 0.764..1.548 seconds 
+**1.	HASH Index (idx_dob_hash)**
+   - Actual time: 0.764..1.548 seconds
+
 **2.	BTREE Index (idx_dob_btree)**
    - Actual time: 1.06..1.21 seconds 
+
 #### Scenario 2: RANGE 1980-2017 LIMIT 50,000
 *1.	HASH Index (idx_dob_hash)*
    - Actual time: 0.787..5.395 seconds
+
 **2.	BTREE Index (idx_dob_btree)**
    - Actual time: 0.953..0.669 seconds
+
 #### Scenario 3: RANGE 1980-2018 LIMIT 100,000
 *1.	HASH Index (idx_dob_hash)*
    - Actual time: 0.995..10.585 seconds 
+
 **2.	BTREE Index (idx_dob_btree)**
    - Actual time: 2.65..11.101 seconds 
 
@@ -231,8 +237,8 @@ Results for `innodb_flush_log_at_trx_commit set to 2`
 
 
 #### Quick Overview:
-- Setting innodb_flush_log_at_trx_commit = 0 focuses on performance by skipping log flushes to disk after each transaction, which increases the risk of data loss in the event of a crash.
-- Setting innodb_flush_log_at_trx_commit = 1 prioritizes durability by flushing the log after every commit, but this significantly reduces performance.
-- Setting innodb_flush_log_at_trx_commit = 2 provides a balanced approach, flushing the log less frequently (once per second), offering a compromise between performance and durability.
+- Setting `innodb_flush_log_at_trx_commit = 0` focuses on performance by skipping log flushes to disk after each transaction, which increases the risk of data loss in the event of a crash.
+- Setting `innodb_flush_log_at_trx_commit = 1` prioritizes durability by flushing the log after every commit, but this significantly reduces performance.
+- Setting `innodb_flush_log_at_trx_commit = 2` provides a balanced approach, flushing the log less frequently (once per second), offering a compromise between performance and durability.
 
 As the number of concurrent users increases (from 20 to 40), the advantages of innodb_flush_log_at_trx_commit = 2 become more apparent. It delivers performance comparable to trx_commit set to `0` while maintaining better transaction durability.
