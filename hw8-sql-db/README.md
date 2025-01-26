@@ -49,7 +49,6 @@ Creating index
 ```
 curl "http://localhost:8080/manageIndex?indexType=BTREE&action=create"
 ```
-Expected resonse: `BTREE index created successfully`
 
 (Optional) Check that index has been created:
 ```
@@ -65,14 +64,12 @@ Run SELECT query with BTREE index:
 curl -I http://localhost:8080/measureSelectPerformance/withBTREE
 ```
 
-
 ![Screenshot 2025-01-25 at 20 18 04](https://github.com/user-attachments/assets/2e27cd67-0703-4322-894b-9ce80e0177a1)
 
 Remove index 
 ```
 curl "http://localhost:8080/manageIndex?indexType=BTREE&action=delete"
 ```
-Expected resonse: `BTREE index deleted successfully.`
 
 **3. HASH index**
 
@@ -80,7 +77,6 @@ Creating index
 ```
 curl "http://localhost:8080/manageIndex?indexType=HASH&action=create"
 ```
-Expected resonse: `HASH index created successfully.`
 
 Run SELECT query with HASH index:
 ```
@@ -93,9 +89,8 @@ Remove index
 ```
 curl "http://localhost:8080/manageIndex?indexType=HASH&action=delete"
 ```
-Expected resonse: `HASH index deleted successfully.`
 
-### Observations:
+#### Observations:
 
 **1. First Query is Slow, Subsequent Queries are Faster.**
 
@@ -103,18 +98,19 @@ Reasons:
 - (With indexes) InnoDB Buffer Pool Caching. When we execute a query, MySQL reads the necessary rows from disk into memory (the InnoDB Buffer Pool) for the first query. For subsequent queries, the data is already loaded in memory (buffer pool), so no additional disk I/O is required, making them much faster.
 - (No indexes) Even without indexes, MySQL may internally optimize and reorder queries when repeatedly executed. This is particularly true if the query is processed within the same connection/session.
 
-**2. HASH Index is Faster Than BTREE Index**
+**2. HASH index is faster than BTREE index**
 
 This outcome was unexpected, given that BTREE indexes are specifically optimized for range queries.
 The observed performance advantage of HASH indexes over BTREE is nuanced and requires deeper exploration.
 
 *__Important note:__ MySQL’s InnoDB engine doesn’t support native HASH indexes, created HASH index is still implemented as Index_type BTREE under the hood.*
 
-Results from EXPLAIN ANALYZE show:
+Results from `EXPLAIN ANALYZE` show:
 
-BTREE Index (idx_dob_btree):
+BTREE Index (`idx_dob_btree`):
    - Time: 16ms to 185ms
-HASH Index (idx_dob_hash):
+
+HASH Index (`idx_dob_hash`):
    - Time: 2.65ms to 33.8ms
 
 
@@ -126,9 +122,9 @@ Both indexes have the same cardinality and range, and identical query structures
 **Potential Causes**
 
 The faster performance of the “HASH” index may be attributed to the following:
-	1.	Query Optimizer Behavior: MySQL may assign different cost estimations or prioritize execution plans for the “HASH” index, even though it is implemented as a BTREE.
-	2.	Subtle Metadata Differences: The USING HASH keyword could influence MySQL’s internal handling of the index, leading to optimizations such as prefetching or read-ahead operations.
-	3.	Range Handling: HASH-like indexing may provide advantages for narrow range lookups due to differences in query planning, even though it is not designed for wide ranges.
+1. Query Optimizer Behavior: MySQL may assign different cost estimations or prioritize execution plans for the “HASH” index, even though it is implemented as a BTREE.
+2. Subtle Metadata Differences: The USING HASH keyword could influence MySQL’s internal handling of the index, leading to optimizations such as prefetching or read-ahead operations.
+3. Range Handling: HASH-like indexing may provide advantages for narrow range lookups due to differences in query planning, even though it is not designed for wide ranges.
 
 
 Set profiling for booth quesries:
