@@ -165,14 +165,14 @@ The profiling tests for both queries (BTREE and HASH indices) reveal negligible 
    - Actual time: 1.06..1.21 seconds 
 
 #### Scenario 2: RANGE 1980-2017 LIMIT 50,000
-*1.	HASH Index (idx_dob_hash)*
+**1.	HASH Index (idx_dob_hash)**
    - Actual time: 0.787..5.395 seconds
 
 **2.	BTREE Index (idx_dob_btree)**
    - Actual time: 0.953..0.669 seconds
 
 #### Scenario 3: RANGE 1980-2018 LIMIT 100,000
-*1.	HASH Index (idx_dob_hash)*
+**1.	HASH Index (idx_dob_hash)**
    - Actual time: 0.995..10.585 seconds 
 
 **2.	BTREE Index (idx_dob_btree)**
