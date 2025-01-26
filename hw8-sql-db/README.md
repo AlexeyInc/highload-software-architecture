@@ -95,7 +95,8 @@ curl "http://localhost:8080/manageIndex?indexType=HASH&action=delete"
 ```
 Expected resonse: `HASH index deleted successfully.`
 
-###Observations:###
+### Observations:
+
 **1. First Query is Slow, Subsequent Queries are Faster.**
 
 Reasons:
@@ -110,23 +111,28 @@ The observed performance advantage of HASH indexes over BTREE is nuanced and req
 *__Important note:__ MySQL’s InnoDB engine doesn’t support native HASH indexes, created HASH index is still implemented as Index_type BTREE under the hood.*
 
 Results from EXPLAIN ANALYZE show:
+
 BTREE Index (idx_dob_btree):
    - Time: 16ms to 185ms
 HASH Index (idx_dob_hash):
    - Time: 2.65ms to 33.8ms
 
-img
+
+![Screenshot 2025-01-26 at 13 05 52](https://github.com/user-attachments/assets/91695581-20cf-46f7-9cff-fb975f0dccf0)
+
 
 Both indexes have the same cardinality and range, and identical query structures were used. Yet, the “HASH” index consistently performs faster.
 
 **Potential Causes**
+
 The faster performance of the “HASH” index may be attributed to the following:
 	1.	Query Optimizer Behavior: MySQL may assign different cost estimations or prioritize execution plans for the “HASH” index, even though it is implemented as a BTREE.
 	2.	Subtle Metadata Differences: The USING HASH keyword could influence MySQL’s internal handling of the index, leading to optimizations such as prefetching or read-ahead operations.
 	3.	Range Handling: HASH-like indexing may provide advantages for narrow range lookups due to differences in query planning, even though it is not designed for wide ranges.
 
 
-We can try to set profiling for booth quesries 
+Set profiling for booth quesries:
+
 ```
 SET PROFILING = 1;
 SELECT * FROM users FORCE INDEX (idx_dob_btree) WHERE date_of_birth BETWEEN '1990-01-01' AND '1991-01-01' LIMIT 1000;
@@ -137,16 +143,21 @@ SHOW PROFILE ALL FOR QUERY 1;
 SHOW PROFILE ALL FOR QUERY 2;
 ```
 
-Profiling Results
+![Screenshot 2025-01-26 at 13 16 25](https://github.com/user-attachments/assets/91ba9b8a-3a39-4912-a735-a005bb3bb5aa)
+
+**Profiling Results**
 
 The profiling tests for both queries (BTREE and HASH indices) reveal negligible differences in CPU usage and overall duration. While the “HASH” index shows slightly better profiling metrics, the observed performance differences cannot be fully explained by these numbers alone.
 
+*Set profiling with adjusted date range and query’s modified LIMIT.*
 
-Set profiling for adjusted date range and query’s modified LIMIT. 
+![Screenshot 2025-01-26 at 13 39 37](https://github.com/user-attachments/assets/e4177e1c-1f5c-49e9-b160-ff16cda7658d)
 
-img 1 
-img 2
-img 3
+![Screenshot 2025-01-26 at 13 42 35](https://github.com/user-attachments/assets/3160c3ad-2dce-4c89-9b5c-55d80fe27de4)
+
+
+![Screenshot 2025-01-26 at 13 37 26](https://github.com/user-attachments/assets/0095a99b-66a0-4663-9d54-ea5b9640e81d)
+
 
 Scenario 1: RANGE 1980-2015 LIMIT 12,000
 1.	HASH Index (idx_dob_hash)
@@ -164,7 +175,7 @@ Scenario 3: RANGE 1980-2018 LIMIT 100,000
 2.	BTREE Index (idx_dob_btree)
    - Actual time: 2.65..11.101 seconds 
 
-Summary of Differences:
+**Summary of Differences:**
 - The HASH index is optimized for smaller RANGE and lower LIMIT values, resulting in better performance in such scenarios.
 - The BTREE index performs more efficiently as the RANGE and LIMIT size increase, with the performance advantage of the HASH index diminishing and eventually reversing.
 - The observed differences arise from how MySQL optimizes queries for the HASH index compared to the BTREE index, rather than any inherent differences in the underlying index structures (as both are implemented as BTREE).
