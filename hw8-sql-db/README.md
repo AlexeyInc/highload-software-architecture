@@ -92,13 +92,17 @@ curl "http://localhost:8080/manageIndex?indexType=HASH&action=delete"
 
 ### Observations:
 
-#### 1. First Query is Slow, Subsequent Queries are Faster.**
+#### 1. Queries with an index are faster than those without one.**
+
+No suprise there. 
+
+#### 2. First Query is Slow, Subsequent Queries are Faster.**
 
 **Reasons:**
 - (With indexes) InnoDB Buffer Pool Caching. When we execute a query, MySQL reads the necessary rows from disk into memory (the InnoDB Buffer Pool) for the first query. For subsequent queries, the data is already loaded in memory (buffer pool), so no additional disk I/O is required, making them much faster.
 - (No indexes) Even without indexes, MySQL may internally optimize and reorder queries when repeatedly executed. This is particularly true if the query is processed within the same connection/session.
 
-#### 2. HASH index is faster than BTREE index
+#### 3. HASH index is faster than BTREE index
 
 This outcome was unexpected, given that BTREE indexes are specifically optimized for range queries.
 The observed performance advantage of HASH indexes over BTREE is nuanced and requires deeper exploration.
