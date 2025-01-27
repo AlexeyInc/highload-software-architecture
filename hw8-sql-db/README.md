@@ -173,7 +173,7 @@ The profiling tests for both queries (BTREE and HASH indices) reveal negligible 
    - Actual time: 0.787..5.395 seconds
 
 **2.	BTREE Index (idx_dob_btree)**
-   - Actual time: 0.953..0.669 seconds
+   - Actual time: 0.953..3.669 seconds
 
 #### Scenario 3: RANGE 1980-2018 LIMIT 100,000
 **1.	HASH Index (idx_dob_hash)**
@@ -184,7 +184,7 @@ The profiling tests for both queries (BTREE and HASH indices) reveal negligible 
 
 **Summary of Differences:**
 - The HASH index is optimized for smaller RANGE and lower LIMIT values, resulting in better performance in such scenarios.
-- The BTREE index performs more efficiently as the RANGE and LIMIT size increase, with the performance advantage of the HASH index diminishing and eventually reversing.
+- The BTREE index performs more efficiently as the RANGE and LIMIT size increase, with the performance advantage of the HASH index diminishing.
 - The observed differences arise from how MySQL optimizes queries for the HASH index compared to the BTREE index, rather than any inherent differences in the underlying index structures (as both are implemented as BTREE).
 
 ___
