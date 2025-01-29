@@ -7,12 +7,13 @@ This project focuses on setting up a monitoring system using the TIG stack (Tele
 - Nginx
 
 **Architecture & Workflow:**
-	1.	Nginx acts as a reverse proxy, forwarding requests to the application container.
-	2.	The application container processes requests and interacts with MongoDB and Elasticsearch.
-	3.	Telegraf collects system and service metrics, sending them to InfluxDB for storage.
-	4.	Grafana visualizes the collected data, providing real-time monitoring dashboards.
-	5.	Load testing is conducted using ab (Apache Benchmark) or siege to simulate traffic and validate monitoring accuracy.
- 
+1. Nginx acts as a reverse proxy, forwarding requests to the application container.
+2. The application container processes requests and interacts with MongoDB and Elasticsearch.
+3. Telegraf collects system and service metrics, sending them to InfluxDB for storage.
+4. Grafana visualizes the collected data, providing real-time monitoring dashboards.
+5. Load testing is conducted using ab (Apache Benchmark) or siege to simulate traffic and validate monitoring accuracy.
+
+ ---
 
 Made 3 stress tests:
 1. **100 requests** at 19:30 (**Concurrency 10**; time taken 0.174 seconds) 
