@@ -1,7 +1,9 @@
-## Stress tests results
+## Project Overview
 
-(On each request the application adds new documents to a MongoDB collection and updates the timestamp if the document already exists)
+This project demonstrates how to handle concurrent requests and database operations under stress tests. The application processes incoming requests by inserting new documents into a MongoDB collection and updating the timestamp if a document already exists.
+ 
 
+### Stress tests results
 1. **Concurrency 10**
 ```
 siege -f urls.txt -c10 -t 15s
