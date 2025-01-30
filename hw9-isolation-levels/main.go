@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"regexp"
+	"strconv"
 	"sync"
 	"time"
 
@@ -102,8 +103,6 @@ func initDatabaseHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Write([]byte("Database initialized successfully."))
 }
-
-// === LOST UPDATE SIMULATION ===
 func handleLostUpdate(w http.ResponseWriter, r *http.Request) {
 	storage, err := getDbStorage(r)
 	if err != nil {
@@ -222,23 +221,45 @@ func handleDirtyRead(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	newValueStr := r.URL.Query().Get("newValue")
+	if newValueStr == "" {
+		http.Error(w, "Missing newValue parameter", http.StatusBadRequest)
+		return
+	}
+
+	newValue, err := strconv.Atoi(newValueStr)
+	if err != nil {
+		http.Error(w, "Invalid newValue parameter", http.StatusBadRequest)
+		return
+	}
+
 	var wg sync.WaitGroup
 	wg.Add(2)
 
 	go func() {
 		defer wg.Done()
-		transactionDirtyReadWriter(storage.db, storage.name, 1, 200)
+		transactionADirtyReadWriter(storage.db, storage.name, 1, newValue)
 	}()
 	go func() {
 		defer wg.Done()
-		transactionDirtyReadReader(storage.db, storage.name, 1)
+		transactionBDirtyReadReader(storage.db, storage.name, 1)
 	}()
 
 	wg.Wait()
+
+	var finalValue int
+	err = storage.db.QueryRow("SELECT value FROM test_table WHERE id = 1").Scan(&finalValue)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Failed to get final value: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	log.Printf("Final id = 1 value: %d", finalValue)
+
 	w.Write([]byte("Dirty Read simulation completed. Check logs."))
 }
 
-func transactionDirtyReadWriter(db *sql.DB, driverName string, id, newValue int) {
+func transactionADirtyReadWriter(db *sql.DB, driverName string, id, newValue int) {
 	tx, err := db.Begin()
 	if err != nil {
 		log.Println("Transaction A failed to start:", err)
@@ -253,15 +274,15 @@ func transactionDirtyReadWriter(db *sql.DB, driverName string, id, newValue int)
 		return
 	}
 
-	log.Println("Transaction A updated but not committed yet.")
-	time.Sleep(1 * time.Second)
+	log.Printf("Transaction A updated id = %v value to %v, but not committed yet.", id, newValue)
+	time.Sleep(5 * time.Second)
 
 	tx.Rollback()
 	log.Println("Transaction A rolled back.")
 }
 
-func transactionDirtyReadReader(db *sql.DB, driverName string, id int) {
-	time.Sleep(300 * time.Millisecond) // Ensure A updates before B reads
+func transactionBDirtyReadReader(db *sql.DB, driverName string, id int) {
+	time.Sleep(2 * time.Second) // Ensure A updates before B reads
 
 	tx, err := db.Begin()
 	if err != nil {
