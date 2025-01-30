@@ -1,0 +1,22 @@
+curl "http://localhost:8080/init-db?dbDriver=percona"
+curl -X POST "http://localhost:8080/lost-update?dbDriver=percona" \                 
+     -H "Content-Type: application/json" \
+     -d '{"valueA": 200, "valueB": 500}'
+curl http://localhost:8080/dirty-read?dbDriver=percona"
+curl http://localhost:8080/non-repeatable-read?dbDriver=percona"
+curl http://localhost:8080/phantom-read?dbDriver=percona"
+
+curl "http://localhost:8080/init-db?dbDriver=postgres" 
+curl -X POST "http://localhost:8080/lost-update?dbDriver=postgres" \                 
+     -H "Content-Type: application/json" \
+     -d '{"valueA": 200, "valueB": 500}'
+curl http://localhost:8080/dirty-read?dbDriver=postgres"
+curl http://localhost:8080/non-repeatable-read?dbDriver=postgres"
+curl http://localhost:8080/phantom-read?dbDriver=postgres"
+
+
+
+DB	Possible Isolation Levels
+MySQL (Percona)	READ-UNCOMMITTED, READ-COMMITTED, REPEATABLE-READ, SERIALIZABLE
+PostgreSQL	READ UNCOMMITTED, READ COMMITTED, REPEATABLE READ, SERIALIZABLE
+
