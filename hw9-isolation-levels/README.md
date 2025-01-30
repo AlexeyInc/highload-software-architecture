@@ -77,7 +77,10 @@ Same applies for **PostgreSQL**. `READ UNCOMMITTED` is internally treated as REA
 docker exec -it <container_id> mysql -u root -p
 ```
 ```
-SET SESSION TRANSACTION ISOLATION LEVEL SERIALIZABLE; SELECT @@transaction_isolation;
+SET SESSION TRANSACTION ISOLATION LEVEL SERIALIZABLE; 
+SELECT @@transaction_isolation;
+SHOW VARIABLES LIKE 'autocommit';
+SET autocommit = 0;
 ```
 
 **Postgres:**
