@@ -22,24 +22,32 @@ func HandlePhantomRead(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Missing isolation parameter", http.StatusBadRequest)
 		return
 	}
+	log.Printf("IsolationLevel: %s", isoLevel)
+
+	err = storage.SetPerconaIsolationLevel(db.Driver, db.Name, isoLevel)
+	if err != nil {
+		log.Println("Transaction A PhantomReader failed to set Percona isolation level:", err)
+		return
+	}
 
 	var wg sync.WaitGroup
 	wg.Add(2)
-
 	go func() {
 		defer wg.Done()
-		transactionPhantomReader(db.Driver, db.Name, isoLevel)
+		transactionAPhantomReader(db.Driver, db.Name, isoLevel)
 	}()
 	go func() {
 		defer wg.Done()
-		transactionPhantomWriter(db.Driver, db.Name, isoLevel)
+		transactionBPhantomWriter(db.Driver, db.Name, isoLevel)
 	}()
 
 	wg.Wait()
-	w.Write([]byte("Phantom Read simulation completed. Check logs."))
+
+	w.Write([]byte("Phantom Read simulation completed. Check logs.\n"))
 }
 
-func transactionPhantomReader(db *sql.DB, driverName, isoLevel string) {
+func transactionAPhantomReader(db *sql.DB, driverName, isoLevel string) {
+
 	tx, err := db.Begin()
 	if err != nil {
 		log.Println("Transaction A failed to start:", err)
@@ -47,7 +55,11 @@ func transactionPhantomReader(db *sql.DB, driverName, isoLevel string) {
 	}
 	defer tx.Commit()
 
-	storage.SetIsolationLevel(tx, isoLevel)
+	err = storage.SetPostgresIsolationLevel(tx, driverName, isoLevel)
+	if err != nil {
+		log.Println("Transaction A PhantomReader failed to set Postgres isolation level:", err)
+		return
+	}
 
 	var count1, count2 int
 	query := storage.FormatQueryPlaceholder("SELECT COUNT(*) FROM test_table WHERE value > 10", driverName)
@@ -68,8 +80,8 @@ func transactionPhantomReader(db *sql.DB, driverName, isoLevel string) {
 	log.Printf("Transaction A second count: %d", count2)
 }
 
-func transactionPhantomWriter(db *sql.DB, driverName, isoLevel string) {
-	time.Sleep(500 * time.Millisecond) // Ensure A reads first
+func transactionBPhantomWriter(db *sql.DB, driverName, isoLevel string) {
+	time.Sleep(time.Second) // Ensure A reads first
 
 	tx, err := db.Begin()
 	if err != nil {
@@ -77,7 +89,11 @@ func transactionPhantomWriter(db *sql.DB, driverName, isoLevel string) {
 		return
 	}
 
-	storage.SetIsolationLevel(tx, isoLevel)
+	err = storage.SetPostgresIsolationLevel(tx, driverName, isoLevel)
+	if err != nil {
+		log.Println("Transaction B failed to set Postgres isolation level:", err)
+		return
+	}
 
 	query := storage.FormatQueryPlaceholder("INSERT INTO test_table (value) VALUES (?)", driverName)
 	_, err = tx.Exec(query, 999)

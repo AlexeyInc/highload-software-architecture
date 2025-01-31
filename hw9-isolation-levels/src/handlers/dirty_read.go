@@ -31,16 +31,23 @@ func HandleDirtyRead(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	isoLevel := r.URL.Query().Get("isolation")
+	if isoLevel == "" {
+		http.Error(w, "Missing isolation parameter", http.StatusBadRequest)
+		return
+	}
+	log.Printf("IsolationLevel: %s", isoLevel)
+
 	var wg sync.WaitGroup
 	wg.Add(2)
 
 	go func() {
 		defer wg.Done()
-		transactionADirtyReadWriter(db.Driver, db.Name, 1, newValue)
+		transactionADirtyReadWriter(db.Driver, db.Name, isoLevel, 1, newValue)
 	}()
 	go func() {
 		defer wg.Done()
-		transactionBDirtyReadReader(db.Driver, db.Name, 1)
+		transactionBDirtyReadReader(db.Driver, db.Name, isoLevel, 1)
 	}()
 
 	wg.Wait()
@@ -54,12 +61,24 @@ func HandleDirtyRead(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("Final id = 1 value: %d", finalValue)
 
-	w.Write([]byte("Dirty Read simulation completed. Check logs."))
+	w.Write([]byte("Dirty Read simulation completed. Check logs.\n"))
 }
-func transactionADirtyReadWriter(db *sql.DB, driverName string, id, newValue int) {
+func transactionADirtyReadWriter(db *sql.DB, driverName, isoLevel string, id, newValue int) {
+	err := storage.SetPerconaIsolationLevel(db, driverName, isoLevel)
+	if err != nil {
+		log.Println("Transaction A DirtyRead failed to set Percona isolation level:", err)
+		return
+	}
+
 	tx, err := db.Begin()
 	if err != nil {
 		log.Println("Transaction A failed to start:", err)
+		return
+	}
+
+	err = storage.SetPostgresIsolationLevel(tx, driverName, isoLevel)
+	if err != nil {
+		log.Println("Transaction A failed to set Postgres isolation level:", err)
 		return
 	}
 
@@ -72,13 +91,19 @@ func transactionADirtyReadWriter(db *sql.DB, driverName string, id, newValue int
 	}
 
 	log.Printf("Transaction A updated id = %v value to %v, but not committed yet.", id, newValue)
-	time.Sleep(5 * time.Second)
+	time.Sleep(4 * time.Second)
 
 	tx.Rollback()
 	log.Println("Transaction A rolled back.")
 }
-func transactionBDirtyReadReader(db *sql.DB, driverName string, id int) {
+func transactionBDirtyReadReader(db *sql.DB, driverName, isoLevel string, id int) {
 	time.Sleep(2 * time.Second) // Ensure A updates before B reads
+
+	err := storage.SetPerconaIsolationLevel(db, driverName, isoLevel)
+	if err != nil {
+		log.Println("Transaction B DirtyRead failed to set Percona isolation level:", err)
+		return
+	}
 
 	tx, err := db.Begin()
 	if err != nil {
@@ -86,6 +111,12 @@ func transactionBDirtyReadReader(db *sql.DB, driverName string, id int) {
 		return
 	}
 	defer tx.Commit()
+
+	err = storage.SetPostgresIsolationLevel(tx, driverName, isoLevel)
+	if err != nil {
+		log.Println("Transaction B failed to set Postgres isolation level:", err)
+		return
+	}
 
 	var value int
 	query := storage.FormatQueryPlaceholder("SELECT value FROM test_table WHERE id = ?", driverName)

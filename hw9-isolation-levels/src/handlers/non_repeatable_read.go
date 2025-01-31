@@ -30,29 +30,48 @@ func HandleNonRepeatableRead(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	isoLevel := r.URL.Query().Get("isolation")
+	if isoLevel == "" {
+		http.Error(w, "Missing isolation parameter", http.StatusBadRequest)
+		return
+	}
+	log.Printf("IsolationLevel: %s", isoLevel)
+
+	err = storage.SetPerconaIsolationLevel(db.Driver, db.Name, isoLevel) // TODO: check should be here always?
+	if err != nil {
+		log.Println("Transaction A NonRepeatable failed to set Percona isolation level:", err)
+		return
+	}
+
 	var wg sync.WaitGroup
 	wg.Add(2)
-
 	go func() {
 		defer wg.Done()
-		transactionANonRepeatableReader(db.Driver, db.Name, 1)
+		transactionANonRepeatableReader(db.Driver, db.Name, isoLevel, 1)
 	}()
 	go func() {
 		defer wg.Done()
-		transactionBNonRepeatableWriter(db.Driver, db.Name, 1, newValue)
+		transactionBNonRepeatableWriter(db.Driver, db.Name, isoLevel, 1, newValue)
 	}()
 
 	wg.Wait()
-	w.Write([]byte("Non-Repeatable Read simulation completed. Check logs."))
+
+	w.Write([]byte("Non-Repeatable Read simulation completed. Check logs.\n"))
 }
 
-func transactionANonRepeatableReader(db *sql.DB, driverName string, id int) {
+func transactionANonRepeatableReader(db *sql.DB, driverName, isoLevel string, id int) {
 	tx, err := db.Begin()
 	if err != nil {
 		log.Println("Transaction A failed to start:", err)
 		return
 	}
 	defer tx.Commit()
+
+	err = storage.SetPostgresIsolationLevel(tx, driverName, isoLevel)
+	if err != nil {
+		log.Println("Transaction A NonRepeatable failed to set Postgres isolation level:", err)
+		return
+	}
 
 	var value1, value2 int
 	query := storage.FormatQueryPlaceholder("SELECT value FROM test_table WHERE id = ?", driverName)
@@ -70,15 +89,23 @@ func transactionANonRepeatableReader(db *sql.DB, driverName string, id int) {
 		log.Println("Transaction A failed to read second value:", err)
 		return
 	}
+
 	log.Printf("Transaction A second read: %d", value2)
 }
 
-func transactionBNonRepeatableWriter(db *sql.DB, driverName string, id, newValue int) {
-	time.Sleep(300 * time.Millisecond) // Ensure A reads first
+func transactionBNonRepeatableWriter(db *sql.DB, driverName, isoLevel string, id, newValue int) {
+	time.Sleep(1 * time.Second) // Ensure A reads first
 
 	tx, err := db.Begin()
 	if err != nil {
 		log.Println("Transaction B failed to start:", err)
+		return
+	}
+	defer tx.Commit()
+
+	err = storage.SetPostgresIsolationLevel(tx, driverName, isoLevel)
+	if err != nil {
+		log.Println("Transaction B NonRepeatable failed to set Postgres isolation level:", err)
 		return
 	}
 
@@ -90,6 +117,5 @@ func transactionBNonRepeatableWriter(db *sql.DB, driverName string, id, newValue
 		return
 	}
 
-	tx.Commit()
 	log.Println("Transaction B committed update.")
 }

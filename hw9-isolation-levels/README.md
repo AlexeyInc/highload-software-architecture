@@ -2,17 +2,17 @@
 ### Percona
 | Isolation Level    | Lost Update | Dirty Read | Non-Repeatable Read | Phantom Read |
 |--------------------|------------|------------|---------------------|--------------|
-| **Read Uncommitted** | ✅  | ❌  | ✅  | ✅  |
+| **Read Uncommitted** | ✅  | ✅  | ✅  | ✅  |
 | **Read Committed**   | ✅  | ❌  | ✅  | ✅  |
-| **Repeatable Read**  | ✅  | ❌  | ❌  | ✅  |
-| **Serializable**     | ✅  | ❌  | ❌  | ❌  |
+| **Repeatable Read**  | ✅  | ❌  | ❌  | ❌  |
+| **Serializable**     | Deadlock  | ❌  | ❌  | ❌  |
 
 ### Postgres
 | Isolation Level    | Lost Update | Dirty Read | Non-Repeatable Read | Phantom Read |
 |--------------------|------------|------------|---------------------|--------------|
 | **Read Uncommitted** | ✅  | ❌  | ✅  | ✅  |
 | **Read Committed**   | ✅  | ❌  | ✅  | ✅  |
-| **Repeatable Read**  | ✅  | ❌  | ❌  | ✅  |
+| **Repeatable Read**  | ✅  | ❌  | ❌  | ❌  |
 | **Serializable**     | ✅  | ❌  | ❌  | ❌  |
 
 
@@ -67,7 +67,57 @@ Same applies for **PostgreSQL**. `READ UNCOMMITTED` is internally treated as REA
 
 ---
 
-## Non-Repeatable Read
+## Non-Repeatable read
+
+###  CURLs to simulate non-repeatable read with different isoalation levels:
+
+```
+curl "http://localhost:8080/init-db?dbDriver={{percona or postgres}}"                           
+
+curl "http://localhost:8080/non-repeatable-read?dbDriver={{percona or postgres}}&newValue=1&isolation=READ%20UNCOMMITTED"
+curl "http://localhost:8080/non-repeatable-read?dbDriver={{percona or postgres}}&newValue=2&isolation=READ%20COMMITTED"
+curl "http://localhost:8080/non-repeatable-read?dbDriver={{percona or postgres}}&newValue=3&isolation=REPEATABLE%20READ"
+curl "http://localhost:8080/non-repeatable-read?dbDriver={{percona or postgres}}&newValue=4&isolation=SERIALIZABLE"
+```
+
+### Results
+
+**Percona**
+img1
+
+**Postgres**
+img2
+
+### Summary
+
+Both databases prevent non-repeatable reads at REPEATABLE READ and SERIALIZABLE isolation levels. PostgreSQL relies on MVCC snapshots, resulting in a different SERIALIZABLE behavior in logs compared to Percona, which uses row-level locking, effectively preventing concurrency anomalies by forcing transactions to execute sequentially.
+
+---
+
+## Phantom Read
+
+###  CURLs to simulate phantom-read with different isoalation levels:
+
+```
+curl "http://localhost:8080/init-db?dbDriver={{percona or postgres}}"       
+
+curl "http://localhost:8080/phantom-read?dbDriver={{percona or postgres}}&isolation=READ%20UNCOMMITTED"
+curl "http://localhost:8080/phantom-read?dbDriver={{percona or postgres}}&isolation=READ%20COMMITTED"
+curl "http://localhost:8080/phantom-read?dbDriver={{percona or postgres}}&isolation=REPEATABLE%20READ"
+curl "http://localhost:8080/phantom-read?dbDriver={{percona or postgres}}&isolation=SERIALIZABLE"
+```
+
+### Results
+
+**Percona**
+img1
+
+**Postgres**
+img2
+
+### Summary
+
+Both databases prevent phantom reads at REPEATABLE READ and SERIALIZABLE isolation levels. PostgreSQL relies on MVCC snapshots, resulting in a different SERIALIZABLE behavior in logs compared to Percona, which uses row-level locking, effectively preventing concurrency anomalies by forcing transactions to execute sequentially.
 
 ### Queries to access database and change isolation levels
 
@@ -90,27 +140,4 @@ docker exec -it <container_id> psql -U testuser -d testdb
 ```
 ```
 SET SESSION CHARACTERISTICS AS TRANSACTION ISOLATION LEVEL SERIALIZABLE; SHOW TRANSACTION ISOLATION LEVEL;
-```
-
-###  CURL to init db tables:
-```
-curl "http://localhost:8080/init-db?dbDriver={{percona or postgres}}"  
-```
-
-###  CURLs to simulate two concurrent transactions for lost update:
-
-**Percona:**
-
-```
-curl -X POST "http://localhost:8080/lost-update?dbDriver=percona" \
-     -H "Content-Type: application/json" \
-     -d '{"valueA": 200, "valueB": 500}'
-```
-
-**Postgres:**
-
-```
-curl -X POST "http://localhost:8080/lost-update?dbDriver=postgres" \
-     -H "Content-Type: application/json" \
-     -d '{"valueA": 200, "valueB": 500}'
 ```

@@ -1,10 +1,10 @@
 curl "http://localhost:8080/init-db?dbDriver=percona"
-curl -X POST "http://localhost:8080/lost-update?dbDriver=percona" \                 
+curl -X POST "http://localhost:8080/lost-update?dbDriver=percona&isolation=READ%20UNCOMMITTED" \                 
      -H "Content-Type: application/json" \
      -d '{"valueA": 200, "valueB": 500}'
-curl "http://localhost:8080/dirty-read?dbDriver=percona&newValue=300"
-curl "http://localhost:8080/non-repeatable-read?dbDriver=percona&newValue=300"
-curl "http://localhost:8080/phantom-read?dbDriver=percona"
+curl "http://localhost:8080/dirty-read?dbDriver=percona&newValue=300&isolation=READ%20COMMITTED"
+curl "http://localhost:8080/non-repeatable-read?dbDriver=percona&newValue=16&isolation=REPEATABLE%20READ"
+curl "http://localhost:8080/phantom-read?dbDriver=percona&isolation=SERIALIZABLE"
 
 curl "http://localhost:8080/init-db?dbDriver=postgres" 
 curl -X POST "http://localhost:8080/lost-update?dbDriver=postgres" \                 

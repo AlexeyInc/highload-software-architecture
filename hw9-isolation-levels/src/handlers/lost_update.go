@@ -33,6 +33,7 @@ func HandleLostUpdate(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Missing isolation parameter", http.StatusBadRequest)
 		return
 	}
+	log.Printf("IsolationLevel: %s", isoLevel)
 
 	if err := json.Unmarshal(body, &req); err != nil {
 		http.Error(w, "Invalid JSON format", http.StatusBadRequest)
@@ -61,7 +62,8 @@ func HandleLostUpdate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Printf("Final id = 1 value: %d", finalValue)
-	w.Write([]byte(fmt.Sprintf("Lost Update simulation completed. Final value: %d", finalValue)))
+
+	w.Write([]byte(fmt.Sprintf("Lost Update simulation completed. Final value: %d\n", finalValue)))
 }
 
 type LostUpdateRequest struct {
@@ -70,13 +72,23 @@ type LostUpdateRequest struct {
 }
 
 func transactionA(db *sql.DB, driverName, isoLevel string, id, newValue int) {
+	err := storage.SetPerconaIsolationLevel(db, driverName, isoLevel)
+	if err != nil {
+		log.Println("Transaction A failed to set Percona isolation level:", err)
+		return
+	}
+
 	tx, err := db.Begin()
 	if err != nil {
 		log.Printf("Transaction A failed to start: %v", err)
 		return
 	}
 
-	storage.SetIsolationLevel(tx, isoLevel)
+	err = storage.SetPostgresIsolationLevel(tx, driverName, isoLevel)
+	if err != nil {
+		log.Println("Transaction A failed to set Postgres isolation level:", err)
+		return
+	}
 
 	var currentValue int
 	query := storage.FormatQueryPlaceholder("SELECT value FROM test_table WHERE id = ?", driverName)
@@ -102,15 +114,25 @@ func transactionA(db *sql.DB, driverName, isoLevel string, id, newValue int) {
 }
 
 func transactionB(db *sql.DB, driverName, isoLevel string, id, newValue int) {
+	err := storage.SetPerconaIsolationLevel(db, driverName, isoLevel)
+	if err != nil {
+		log.Println("Transaction B failed to set Percona isolation level:", err)
+		return
+	}
+
 	tx, err := db.Begin()
 	if err != nil {
 		log.Printf("Transaction B failed to start: %v", err)
 		return
 	}
 
-	time.Sleep(1 * time.Second)
+	err = storage.SetPostgresIsolationLevel(tx, driverName, isoLevel)
+	if err != nil {
+		log.Println("Transaction B failed to set Postgres isolation level:", err)
+		return
+	}
 
-	storage.SetIsolationLevel(tx, isoLevel)
+	time.Sleep(1 * time.Second)
 
 	var currentValue int
 	query := storage.FormatQueryPlaceholder("SELECT value FROM test_table WHERE id = ?", driverName)
