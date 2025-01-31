@@ -42,10 +42,13 @@ curl -X POST "http://localhost:8080/lost-update?dbDriver={{percona or postgres}}
 #### Results
 
 **Percona**
- img
+
+![Screenshot 2025-01-31 at 14 12 50](https://github.com/user-attachments/assets/d353602c-edbc-4c71-ab4c-573e59b6b064)
+
 
 **Postgres**
- img
+
+![Screenshot 2025-01-31 at 14 14 25](https://github.com/user-attachments/assets/0073fdb6-eee5-4a2f-b373-9787c998c1b6)
 
 
 #### Summary
@@ -73,10 +76,14 @@ curl "http://localhost:8080/dirty-read?dbDriver={{percona or postgres}}&newValue
 #### Results
 
 **Percona**
- img
+
+![Screenshot 2025-01-31 at 13 57 27](https://github.com/user-attachments/assets/6d47844b-8ba2-4671-a38b-18d7f6ba13d8)
+
 
 **Postgres**
- img
+
+
+![Screenshot 2025-01-31 at 14 02 46](https://github.com/user-attachments/assets/85ffee8a-73a1-4300-b008-eb067e2e7864)
 
 
 #### Summary
@@ -84,9 +91,8 @@ curl "http://localhost:8080/dirty-read?dbDriver={{percona or postgres}}&newValue
 Both databases prevent non-repeatable reads at REPEATABLE READ and SERIALIZABLE isolation levels. PostgreSQL relies on MVCC snapshots, resulting in a different SERIALIZABLE behavior in logs compared to Percona, which uses row-level locking, effectively preventing concurrency anomalies by forcing transactions to execute sequentially.
 
 Expectation is that Transaction B should be able to read Transaction A’s uncommitted changes on the isolation level `READ UNCOMMITTED`.
-
-**Percona** allow dirty reads when the isolation level is set to `READ UNCOMMITTED`. 
-**PostgreSQL** `READ UNCOMMITTED` is internally treated as `READ COMMITTED`, which prevents dirty reads.
+- **Percona** allow dirty reads when the isolation level is set to `READ UNCOMMITTED`. 
+- **PostgreSQL** `READ UNCOMMITTED` is internally treated as `READ COMMITTED`, which prevents dirty reads.
 
 ---
 
