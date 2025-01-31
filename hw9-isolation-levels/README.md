@@ -52,7 +52,7 @@ curl -X POST "http://localhost:8080/lost-update?dbDriver={{percona or postgres}}
      -d '{"valueA": 200, "valueB": 500}'
 ```
 
-#### Results
+### Results
 
 **Percona**
 
@@ -86,7 +86,7 @@ curl "http://localhost:8080/dirty-read?dbDriver={{percona or postgres}}&newValue
 curl "http://localhost:8080/dirty-read?dbDriver={{percona or postgres}}&newValue=200&isolation=SERIALIZABLE" 
 ```
 
-#### Results
+### Results
 
 **Percona**
 
@@ -122,7 +122,7 @@ curl "http://localhost:8080/non-repeatable-read?dbDriver={{percona or postgres}}
 curl "http://localhost:8080/non-repeatable-read?dbDriver={{percona or postgres}}&newValue=4&isolation=SERIALIZABLE"
 ```
 
-#### Results
+### Results
 
 **Percona**
 
@@ -152,7 +152,7 @@ curl "http://localhost:8080/phantom-read?dbDriver={{percona or postgres}}&isolat
 curl "http://localhost:8080/phantom-read?dbDriver={{percona or postgres}}&isolation=SERIALIZABLE"
 ```
 
-#### Results
+### Results
 
 **Percona**
 
