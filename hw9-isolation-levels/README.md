@@ -83,10 +83,14 @@ curl "http://localhost:8080/non-repeatable-read?dbDriver={{percona or postgres}}
 ### Results
 
 **Percona**
-img1
+
+![Screenshot 2025-01-31 at 12 01 08](https://github.com/user-attachments/assets/48e8b83b-64ad-4f85-92c7-5cf9517866ff)
+
 
 **Postgres**
-img2
+
+![Screenshot 2025-01-31 at 12 05 09](https://github.com/user-attachments/assets/700c8f4b-2761-47f1-b1af-52a73b80761f)
+
 
 ### Summary
 
@@ -110,10 +114,14 @@ curl "http://localhost:8080/phantom-read?dbDriver={{percona or postgres}}&isolat
 ### Results
 
 **Percona**
-img1
+
+![Screenshot 2025-01-31 at 10 21 30](https://github.com/user-attachments/assets/34b77aef-0e29-4a20-8919-8e90a8224169)
+
 
 **Postgres**
-img2
+
+![Screenshot 2025-01-31 at 11 17 41](https://github.com/user-attachments/assets/12473da7-e436-4a4d-807d-fd91532f0fc7)
+
 
 ### Summary
 
