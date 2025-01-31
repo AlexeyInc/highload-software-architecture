@@ -2,14 +2,16 @@
 
 This project demonstrates how different transaction isolation levels affect parallel database access in Percona (MySQL/InnoDB) and PostgreSQL. It explores key concurrency issues such as Lost Updates, Dirty Reads, Non-Repeatable Reads, and Phantom Reads by running parallel transactions with different isolation levels.
 
-App built using Go and MySQL env is set up with docker-compose.
-
 ### How to Use
 
 1. Run `docker-compose up -d` to start the project.
 2. Execute `go run ./scr/cmd/main.go` from the root directory to launch the application.
 
-### Percona
+---
+
+### Results
+
+#### Percona
 | Isolation Level    | Lost Update | Dirty Read | Non-Repeatable Read | Phantom Read |
 |--------------------|------------|------------|---------------------|--------------|
 | **Read Uncommitted** | ✅  | ✅  | ✅  | ✅  |
@@ -17,14 +19,13 @@ App built using Go and MySQL env is set up with docker-compose.
 | **Repeatable Read**  | ✅  | ❌  | ❌  | ❌  |
 | **Serializable**     | ❌ - Deadlock  | ❌  | ❌  | ❌  |
 
-### Postgres
+#### Postgres
 | Isolation Level    | Lost Update | Dirty Read | Non-Repeatable Read | Phantom Read |
 |--------------------|------------|------------|---------------------|--------------|
 | **Read Uncommitted** | ✅  | ❌  | ✅  | ✅  |
 | **Read Committed**   | ✅  | ❌  | ✅  | ✅  |
 | **Repeatable Read**  | ❌ - transaction error  | ❌  | ❌  | ❌  |
 | **Serializable**     | ❌ - transaction error  | ❌  | ❌  | ❌  |
-
 
 ---
  
