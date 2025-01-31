@@ -116,7 +116,7 @@ func transactionA(db *sql.DB, driverName, isoLevel string, id, newValue int) {
 func transactionB(db *sql.DB, driverName, isoLevel string, id, newValue int) {
 	err := storage.SetPerconaIsolationLevel(db, driverName, isoLevel)
 	if err != nil {
-		log.Println("Transaction B failed to set Percona isolation level:", err)
+		log.Println("Transaction A failed to set Percona isolation level:", err)
 		return
 	}
 

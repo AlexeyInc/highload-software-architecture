@@ -37,12 +37,6 @@ func HandleNonRepeatableRead(w http.ResponseWriter, r *http.Request) {
 	}
 	log.Printf("IsolationLevel: %s", isoLevel)
 
-	err = storage.SetPerconaIsolationLevel(db.Driver, db.Name, isoLevel) // TODO: check should be here always?
-	if err != nil {
-		log.Println("Transaction A NonRepeatable failed to set Percona isolation level:", err)
-		return
-	}
-
 	var wg sync.WaitGroup
 	wg.Add(2)
 	go func() {
@@ -60,6 +54,12 @@ func HandleNonRepeatableRead(w http.ResponseWriter, r *http.Request) {
 }
 
 func transactionANonRepeatableReader(db *sql.DB, driverName, isoLevel string, id int) {
+	err := storage.SetPerconaIsolationLevel(db, driverName, isoLevel) // TODO: check should be here always?
+	if err != nil {
+		log.Println("Transaction for NonRepeatable failed to set Percona isolation level:", err)
+		return
+	}
+
 	tx, err := db.Begin()
 	if err != nil {
 		log.Println("Transaction A failed to start:", err)

@@ -24,12 +24,6 @@ func HandlePhantomRead(w http.ResponseWriter, r *http.Request) {
 	}
 	log.Printf("IsolationLevel: %s", isoLevel)
 
-	err = storage.SetPerconaIsolationLevel(db.Driver, db.Name, isoLevel)
-	if err != nil {
-		log.Println("Transaction A PhantomReader failed to set Percona isolation level:", err)
-		return
-	}
-
 	var wg sync.WaitGroup
 	wg.Add(2)
 	go func() {
@@ -47,6 +41,11 @@ func HandlePhantomRead(w http.ResponseWriter, r *http.Request) {
 }
 
 func transactionAPhantomReader(db *sql.DB, driverName, isoLevel string) {
+	err := storage.SetPerconaIsolationLevel(db, driverName, isoLevel)
+	if err != nil {
+		log.Println("Transaction for PhantomRead failed to set Percona isolation level:", err)
+		return
+	}
 
 	tx, err := db.Begin()
 	if err != nil {
@@ -88,6 +87,7 @@ func transactionBPhantomWriter(db *sql.DB, driverName, isoLevel string) {
 		log.Println("Transaction B failed to start:", err)
 		return
 	}
+	defer tx.Commit()
 
 	err = storage.SetPostgresIsolationLevel(tx, driverName, isoLevel)
 	if err != nil {
@@ -103,6 +103,5 @@ func transactionBPhantomWriter(db *sql.DB, driverName, isoLevel string) {
 		return
 	}
 
-	tx.Commit()
 	log.Println("Transaction B inserted new row.")
 }

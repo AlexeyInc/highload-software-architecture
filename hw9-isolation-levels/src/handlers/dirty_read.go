@@ -64,12 +64,6 @@ func HandleDirtyRead(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Dirty Read simulation completed. Check logs.\n"))
 }
 func transactionADirtyReadWriter(db *sql.DB, driverName, isoLevel string, id, newValue int) {
-	err := storage.SetPerconaIsolationLevel(db, driverName, isoLevel)
-	if err != nil {
-		log.Println("Transaction A DirtyRead failed to set Percona isolation level:", err)
-		return
-	}
-
 	tx, err := db.Begin()
 	if err != nil {
 		log.Println("Transaction A failed to start:", err)
@@ -91,7 +85,7 @@ func transactionADirtyReadWriter(db *sql.DB, driverName, isoLevel string, id, ne
 	}
 
 	log.Printf("Transaction A updated id = %v value to %v, but not committed yet.", id, newValue)
-	time.Sleep(4 * time.Second)
+	time.Sleep(3 * time.Second)
 
 	tx.Rollback()
 	log.Println("Transaction A rolled back.")
@@ -101,7 +95,7 @@ func transactionBDirtyReadReader(db *sql.DB, driverName, isoLevel string, id int
 
 	err := storage.SetPerconaIsolationLevel(db, driverName, isoLevel)
 	if err != nil {
-		log.Println("Transaction B DirtyRead failed to set Percona isolation level:", err)
+		log.Println("Transaction for DirtyRead failed to set Percona isolation level:", err)
 		return
 	}
 
