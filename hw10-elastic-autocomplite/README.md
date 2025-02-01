@@ -4,46 +4,46 @@ This project implements an Elasticsearch-based autocomplete and typo-tolerant se
 
 ### How to Use
 
-1. Run `docker-compose up -d` to start the project. (**Test Connection:** curl http://localhost:9200)
+1. Run `docker-compose up -d` to start the project. (check connection: curl http://localhost:9200)
 
 2. Run curl query to create an ElasticSearch index
 - <details>
     <summary>Index with proper analyzers</summary>
     <pre>
     curl -X PUT "http://localhost:9200/words_index" -H "Content-Type: application/json" -d '{
-    "settings": {
-        "analysis": {
-        "filter": {
-            "autocomplete_filter": {
-            "type": "edge_ngram",
-            "min_gram": 1,
-            "max_gram": 20
-            }
+  "settings": {
+    "analysis": {
+      "filter": {
+        "autocomplete_filter": {
+          "type": "edge_ngram",
+          "min_gram": 2,
+          "max_gram": 20
+        }
+      },
+      "analyzer": {
+        "autocomplete_analyzer": {
+          "type": "custom",
+          "tokenizer": "standard",
+          "filter": ["lowercase", "autocomplete_filter"]
         },
-        "analyzer": {
-            "autocomplete_analyzer": {
-            "type": "custom",
-            "tokenizer": "standard",
-            "filter": ["lowercase", "autocomplete_filter"]
-            },
-            "search_analyzer": {
-            "type": "custom",
-            "tokenizer": "standard",
-            "filter": ["lowercase"]
-            }
+        "search_analyzer": {
+          "type": "custom",
+          "tokenizer": "standard",
+          "filter": ["lowercase"]
         }
-        }
-    },
-    "mappings": {
-        "properties": {
-        "word": {
-            "type": "text",
-            "analyzer": "autocomplete_analyzer",
-            "search_analyzer": "search_analyzer"
-        }
-        }
+      }
     }
-    }'
+  },
+  "mappings": {
+    "properties": {
+      "word": {
+        "type": "text",
+        "analyzer": "autocomplete_analyzer",
+        "search_analyzer": "search_analyzer"
+      }
+    }
+  }
+}'
     </pre>
 </details>
 
