@@ -48,6 +48,8 @@ This project implements an Elasticsearch-based autocomplete and typo-tolerant se
 </details>
 
 3. Run `go run main.go` will load words into index and run server
+   
+![Screenshot 2025-02-01 at 13 49 18](https://github.com/user-attachments/assets/0436ac9d-6558-45db-8983-3ff6255292ee)
 
 ---
 
