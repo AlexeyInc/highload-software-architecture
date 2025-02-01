@@ -110,6 +110,11 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 			"bool": map[string]interface{}{
 				"should": []map[string]interface{}{
 					{
+						"term": map[string]interface{}{
+							"word": query,
+						},
+					},
+					{
 						"match": map[string]interface{}{
 							"word": map[string]interface{}{
 								"query":     query,
@@ -123,6 +128,7 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 						},
 					},
 				},
+				"minimum_should_match": 1,
 			},
 		},
 		"sort": []map[string]interface{}{

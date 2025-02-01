@@ -4,7 +4,7 @@ curl -X PUT "http://localhost:9200/words_index" -H "Content-Type: application/js
       "filter": {
         "autocomplete_filter": {
           "type": "edge_ngram",
-          "min_gram": 1,
+          "min_gram": 2,
           "max_gram": 20
         }
       },
