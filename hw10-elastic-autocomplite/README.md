@@ -55,7 +55,7 @@ This project implements an Elasticsearch-based autocomplete and typo-tolerant se
 
 ### API in action
 
-#### Search for a word:**
+### Search for a word:
 
 **Request:**
 ```
@@ -67,7 +67,7 @@ curl "http://localhost:8080/search?q=sneakers"
 ```
 </br>
 
-#### Search with a typo:
+### Search with a typo:
 
 **Request:**
 ```
