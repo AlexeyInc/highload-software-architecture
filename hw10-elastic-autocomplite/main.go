@@ -18,6 +18,17 @@ type Word struct {
 }
 
 func main() {
+	if !isIndexInitialized() {
+		loadWordsIntoIndex()
+	}
+	//-----------------------------------
+
+	http.HandleFunc("/search", searchHandler)
+	log.Println("Server running on port 8080...")
+	log.Fatal(http.ListenAndServe(":8080", nil))
+}
+
+func loadWordsIntoIndex() {
 	file, err := os.Open("words.txt")
 	if err != nil {
 		log.Fatalf("Failed to open words file: %v", err)
@@ -47,12 +58,24 @@ func main() {
 		sendBulkRequest(bulkBuffer.String())
 	}
 	fmt.Println("Indexing completed.")
+}
 
-	//-----------------------------------
+func isIndexInitialized() bool {
+	resp, err := http.Get(elasticSearchURL + "?size=1")
+	if err != nil {
+		log.Printf("Failed to check index status: %v", err)
+		return false
+	}
+	defer resp.Body.Close()
 
-	http.HandleFunc("/search", searchHandler)
-	log.Println("Server running on port 8080...")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	var result map[string]interface{}
+	json.NewDecoder(resp.Body).Decode(&result)
+
+	hits, ok := result["hits"].(map[string]interface{})["total"].(map[string]interface{})["value"].(float64)
+	if ok && hits > 0 {
+		return true
+	}
+	return false
 }
 
 func sendBulkRequest(data string) {
@@ -63,14 +86,6 @@ func sendBulkRequest(data string) {
 	defer resp.Body.Close()
 
 	fmt.Printf("Bulk insert status: %s\n", resp.Status)
-}
-
-type ESQuery struct {
-	Query struct {
-		Bool struct {
-			Should []map[string]interface{} `json:"should"`
-		} `json:"bool"`
-	} `json:"query"`
 }
 
 type ESResponse struct {
@@ -90,11 +105,29 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Construct Query
-	reqBody := ESQuery{}
-	reqBody.Query.Bool.Should = []map[string]interface{}{
-		{"match_phrase_prefix": map[string]interface{}{"word": query}},
-		{"fuzzy": map[string]interface{}{"word": map[string]interface{}{"value": query, "fuzziness": "AUTO"}}},
+	reqBody := map[string]interface{}{
+		"query": map[string]interface{}{
+			"bool": map[string]interface{}{
+				"should": []map[string]interface{}{
+					{
+						"match": map[string]interface{}{
+							"word": map[string]interface{}{
+								"query":     query,
+								"fuzziness": "AUTO",
+							},
+						},
+					},
+					{
+						"match_phrase_prefix": map[string]interface{}{
+							"word": query,
+						},
+					},
+				},
+			},
+		},
+		"sort": []map[string]interface{}{
+			{"_score": map[string]string{"order": "desc"}},
+		},
 	}
 
 	reqBodyBytes, _ := json.Marshal(reqBody)
