@@ -2,14 +2,11 @@
 
 This project demonstrates how different transaction isolation levels affect parallel database access in Percona (MySQL/InnoDB) and PostgreSQL. It explores key concurrency issues such as Lost Updates, Dirty Reads, Non-Repeatable Reads, and Phantom Reads by running parallel transactions with different isolation levels.
 
-App built using Go and MySQL env is set up with docker-compose.
+---
 
-### How to Use
+### Results
 
-1. Run `docker-compose up -d` to start the project.
-2. Execute `go run ./scr/cmd/main.go` from the root directory to launch the application.
-
-### Percona
+#### Percona
 | Isolation Level    | Lost Update | Dirty Read | Non-Repeatable Read | Phantom Read |
 |--------------------|------------|------------|---------------------|--------------|
 | **Read Uncommitted** | ✅  | ✅  | ✅  | ✅  |
@@ -17,7 +14,7 @@ App built using Go and MySQL env is set up with docker-compose.
 | **Repeatable Read**  | ✅  | ❌  | ❌  | ❌  |
 | **Serializable**     | ❌ - Deadlock  | ❌  | ❌  | ❌  |
 
-### Postgres
+#### Postgres
 | Isolation Level    | Lost Update | Dirty Read | Non-Repeatable Read | Phantom Read |
 |--------------------|------------|------------|---------------------|--------------|
 | **Read Uncommitted** | ✅  | ❌  | ✅  | ✅  |
@@ -25,8 +22,14 @@ App built using Go and MySQL env is set up with docker-compose.
 | **Repeatable Read**  | ❌ - transaction error  | ❌  | ❌  | ❌  |
 | **Serializable**     | ❌ - transaction error  | ❌  | ❌  | ❌  |
 
-
 ---
+
+
+### How to Use
+
+1. Run `docker-compose up -d` to start the project.
+2. Execute `go run ./scr/cmd/main.go` from the root directory to launch the application.
+
  
 ## Lost Update
 
@@ -49,7 +52,7 @@ curl -X POST "http://localhost:8080/lost-update?dbDriver={{percona or postgres}}
      -d '{"valueA": 200, "valueB": 500}'
 ```
 
-#### Results
+### Results
 
 **Percona**
 
@@ -83,7 +86,7 @@ curl "http://localhost:8080/dirty-read?dbDriver={{percona or postgres}}&newValue
 curl "http://localhost:8080/dirty-read?dbDriver={{percona or postgres}}&newValue=200&isolation=SERIALIZABLE" 
 ```
 
-#### Results
+### Results
 
 **Percona**
 
@@ -119,7 +122,7 @@ curl "http://localhost:8080/non-repeatable-read?dbDriver={{percona or postgres}}
 curl "http://localhost:8080/non-repeatable-read?dbDriver={{percona or postgres}}&newValue=4&isolation=SERIALIZABLE"
 ```
 
-#### Results
+### Results
 
 **Percona**
 
@@ -149,7 +152,7 @@ curl "http://localhost:8080/phantom-read?dbDriver={{percona or postgres}}&isolat
 curl "http://localhost:8080/phantom-read?dbDriver={{percona or postgres}}&isolation=SERIALIZABLE"
 ```
 
-#### Results
+### Results
 
 **Percona**
 
