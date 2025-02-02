@@ -41,10 +41,10 @@ func main() {
 }
 
 func preloadKeys() {
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 25000; i++ {
 		key := fmt.Sprintf("key:%d", i)
-		value := rand.Intn(10000)
-		ttl := time.Duration(rand.Intn(300)) * time.Second // Random TTL up to 5 minutes
+		value := rand.Intn(1000)
+		ttl := (time.Duration(rand.Intn(3)) + 1) * time.Second // Random 1 min < TTL <= 4 min
 		if err := redisClient.Set(ctx, key, value, ttl).Err(); err != nil {
 			log.Printf("Failed to set key %s: %v", key, err)
 			return
@@ -54,8 +54,9 @@ func preloadKeys() {
 }
 
 func testEviction(w http.ResponseWriter, policy string) {
-	for i := 0; i < 2000; i++ {
+	for i := 0; i < 10000; i++ {
 		key := fmt.Sprintf("test-key:%d", i)
+		time.Sleep(time.Millisecond * 5)
 		if err := redisClient.Set(ctx, key, i, 0).Err(); err != nil {
 			log.Printf("Failed to set key %s: %v", key, err)
 			return
