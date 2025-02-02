@@ -88,13 +88,8 @@ services:
   redis-exporter:
     image: oliver006/redis_exporter
     container_name: redis-exporter
-    command: 
-      - "--redis.addr=redis-node-1:6379"
-      - "--redis.addr=redis-node-2:6380"
-      - "--redis.addr=redis-node-3:6381"
-      - "--redis.addr=redis-node-4:6382"
-      - "--redis.addr=redis-node-5:6383"
-      - "--redis.addr=redis-node-6:6384"
+    environment:
+      - REDIS_ADDR=redis-node-1:6379
     networks:
       - redis-cluster
     ports:
@@ -110,6 +105,8 @@ services:
   prometheus:
     image: prom/prometheus:v3.1.0
     container_name: prometheus
+    networks:
+      - redis-cluster
     volumes:
       - ./configs/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
     ports:
@@ -118,6 +115,8 @@ services:
   grafana:
     image: grafana/grafana:11.5.0
     container_name: grafana
+    networks:
+      - redis-cluster
     ports:
       - "3000:3000"
     depends_on:

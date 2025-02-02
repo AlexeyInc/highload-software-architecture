@@ -1,0 +1,9 @@
+curl "http://localhost:8080/evict/lru"
+curl "http://localhost:8080/evict/random"
+curl "http://localhost:8080/evict/ttl"
+
+curl "http://localhost:8080/cache/recompute"
+
+// siege -c20 -t30S -f urls.txt
+
+

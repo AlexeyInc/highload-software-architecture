@@ -15,7 +15,6 @@ var redisClient *redis.ClusterClient
 var ctx = context.Background()
 
 func main() {
-	// Initialize Redis Cluster Client
 	redisClient = redis.NewClusterClient(&redis.ClusterOptions{
 		Addrs: []string{
 			"localhost:6379",
@@ -63,7 +62,7 @@ func testEviction(w http.ResponseWriter, policy string) {
 		}
 	}
 
-	w.Write([]byte(fmt.Sprintf("✅ Tested eviction strategy: %s", policy)))
+	w.Write([]byte(fmt.Sprintf("Tested eviction strategy: %s", policy)))
 }
 
 func handleRecomputeCache(w http.ResponseWriter, r *http.Request) {
@@ -76,7 +75,7 @@ func handleRecomputeCache(w http.ResponseWriter, r *http.Request) {
 	}
 
 	val := getCachedValueWithRecompute(key, recomputeFunc)
-	w.Write([]byte(fmt.Sprintf("✅ Cache Value (Recompute): %s", val)))
+	w.Write([]byte(fmt.Sprintf("Cache Value (Recompute): %s", val)))
 }
 
 func handleProbabilisticCache(w http.ResponseWriter, r *http.Request) {
@@ -89,7 +88,7 @@ func handleProbabilisticCache(w http.ResponseWriter, r *http.Request) {
 	}
 
 	val := getCachedValueWithProbabilisticTTL(key, recomputeFunc)
-	w.Write([]byte(fmt.Sprintf("✅ Cache Value (Probabilistic): %s", val)))
+	w.Write([]byte(fmt.Sprintf("Cache Value (Probabilistic): %s", val)))
 }
 
 func getCachedValueWithRecompute(key string, recomputeFunc func() string) string {
