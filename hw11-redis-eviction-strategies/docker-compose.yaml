@@ -1,0 +1,148 @@
+services:
+  redis-node-1:
+    image: redis:7.0
+    container_name: redis-node-1
+    command: redis-server /etc/redis/redis.conf --cluster-enabled yes --cluster-config-file nodes.conf --cluster-node-timeout 5000
+    ports:
+      - "6379:6379"
+    networks:
+      - redis-cluster
+    volumes:
+      - ./configs/redis:/etc/redis
+      - redis-data-1:/data
+
+  redis-node-2:
+    image: redis:7.0
+    container_name: redis-node-2
+    command: redis-server /etc/redis/redis.conf --cluster-enabled yes --cluster-config-file nodes.conf --cluster-node-timeout 5000
+    ports:
+      - "6380:6379"
+    networks:
+      - redis-cluster
+    volumes:
+      - ./configs/redis:/etc/redis
+      - redis-data-2:/data
+
+  redis-node-3:
+    image: redis:7.0
+    container_name: redis-node-3
+    command: redis-server /etc/redis/redis.conf --cluster-enabled yes --cluster-config-file nodes.conf --cluster-node-timeout 5000
+    ports:
+      - "6381:6379"
+    networks:
+      - redis-cluster
+    volumes:
+      - ./configs/redis:/etc/redis
+      - redis-data-3:/data
+
+  redis-node-4:
+    image: redis:7.0
+    container_name: redis-node-4
+    command: redis-server /etc/redis/redis.conf --cluster-enabled yes --cluster-config-file nodes.conf --cluster-node-timeout 5000
+    ports:
+      - "6382:6379"
+    networks:
+      - redis-cluster
+    volumes:
+      - ./configs/redis:/etc/redis
+      - redis-data-4:/data
+
+  redis-node-5:
+    image: redis:7.0
+    container_name: redis-node-5
+    command: redis-server /etc/redis/redis.conf --cluster-enabled yes --cluster-config-file nodes.conf --cluster-node-timeout 5000
+    ports:
+      - "6383:6379"
+    networks:
+      - redis-cluster
+    volumes:
+      - ./configs/redis:/etc/redis
+      - redis-data-5:/data
+
+  redis-node-6:
+    image: redis:7.0
+    container_name: redis-node-6
+    command: redis-server /etc/redis/redis.conf --cluster-enabled yes --cluster-config-file nodes.conf --cluster-node-timeout 5000
+    ports:
+      - "6384:6379"
+    networks:
+      - redis-cluster
+    volumes:
+      - ./configs/redis:/etc/redis
+      - redis-data-6:/data
+
+  redis-cluster-init:
+    image: redis:7.0
+    container_name: redis-cluster-init
+    depends_on:
+      - redis-node-1
+      - redis-node-2
+      - redis-node-3
+      - redis-node-4
+      - redis-node-5
+      - redis-node-6
+    networks:
+      - redis-cluster
+    entrypoint: [ "sh", "-c", "sleep 10 && redis-cli --cluster create redis-node-1:6379 redis-node-2:6379 redis-node-3:6379 redis-node-4:6379 redis-node-5:6379 redis-node-6:6379 --cluster-replicas 1 --cluster-yes" ]
+
+  redis-exporter:
+    image: oliver006/redis_exporter
+    container_name: redis-exporter
+    command: 
+      - "--redis.addr=redis-node-1:6379"
+      - "--redis.addr=redis-node-2:6380"
+      - "--redis.addr=redis-node-3:6381"
+      - "--redis.addr=redis-node-4:6382"
+      - "--redis.addr=redis-node-5:6383"
+      - "--redis.addr=redis-node-6:6384"
+    networks:
+      - redis-cluster
+    ports:
+      - "9121:9121"
+    depends_on:
+      - redis-node-1
+      - redis-node-2
+      - redis-node-3
+      - redis-node-4
+      - redis-node-5
+      - redis-node-6
+
+  prometheus:
+    image: prom/prometheus:v3.1.0
+    container_name: prometheus
+    volumes:
+      - ./configs/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+
+  grafana:
+    image: grafana/grafana:11.5.0
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+
+  postgres:
+    image: postgres:15
+    container_name: postgres-rds
+    environment:
+      POSTGRES_USER: testuser
+      POSTGRES_PASSWORD: testpassword
+      POSTGRES_DB: testdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+volumes:
+  redis-data-1:
+  redis-data-2:
+  redis-data-3:
+  redis-data-4:
+  redis-data-5:
+  redis-data-6:
+  postgres-data:
+
+networks:
+  redis-cluster:
+    driver: bridge
