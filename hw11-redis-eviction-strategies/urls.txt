@@ -1,9 +1,21 @@
 curl "http://localhost:8080/evict/lru"
+curl "http://localhost:8080/evict/lfu"
 curl "http://localhost:8080/evict/random"
 curl "http://localhost:8080/evict/ttl"
 
-curl "http://localhost:8080/cache/recompute"
+curl -X GET http://localhost:8080/fetch/db/samplekey
+curl -X GET http://localhost:8080/fetch/cache/samplekey
+
+curl -X GET http://localhost:8080/fetch/external/samplekey
+curl -X GET http://localhost:8080/fetch/probabilistic/samplekey
+
+curl -X POST http://localhost:8080/set/samplekey/samplevalue/30
 
 // siege -c20 -t30S -f urls.txt
 
 
+verify redis data 
+docker exec -it redis-node-1 redis-cli keys "*"
+
+To check a specific key:
+docker exec -it redis-node-1 redis-cli get samplekey

@@ -83,7 +83,7 @@ services:
       - redis-node-6
     networks:
       - redis-cluster
-    entrypoint: [ "sh", "-c", "sleep 10 && redis-cli --cluster create redis-node-1:6379 redis-node-2:6379 redis-node-3:6379 redis-node-4:6379 redis-node-5:6379 redis-node-6:6379 --cluster-replicas 1 --cluster-yes" ]
+    entrypoint: [ "sh", "-c", "sleep 3 && redis-cli --cluster create redis-node-1:6379 redis-node-2:6379 redis-node-3:6379 redis-node-4:6379 redis-node-5:6379 redis-node-6:6379 --cluster-replicas 1 --cluster-yes" ]
 
   redis-exporter:
     image: oliver006/redis_exporter
@@ -124,25 +124,38 @@ services:
     environment:
       - GF_SECURITY_ADMIN_USER=admin    
       - GF_SECURITY_ADMIN_PASSWORD=admin 
-      - GF_AUTH_DISABLE_LOGIN_FORM=true  
       - GF_AUTH_ANONYMOUS_ENABLED=true   
       - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin  
-      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_USERS_ALLOW_SIGN_UP=true
     volumes:
       - ./configs/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
       - ./configs/grafana/dashboards:/var/lib/grafana/dashboards
 
-  postgres:
-    image: postgres:15
-    container_name: postgres-rds
-    environment:
-      POSTGRES_USER: testuser
-      POSTGRES_PASSWORD: testpassword
-      POSTGRES_DB: testdb
+  redisinsight:
+    image: redislabs/redisinsight:latest
+    platform: linux/amd64
+    networks:
+      - redis-cluster
+    container_name: redis_explorer
+    restart: always
     ports:
-      - "5432:5432"
+      - "5540:5540"
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - redisinsight_data:/db
+
+  app:
+    build: .
+    container_name: go-app
+    depends_on:
+      redis-cluster-init:
+        condition: service_completed_successfully
+    networks:
+      - redis-cluster
+    ports:
+      - "8080:8080"
+    environment:
+      - REDIS_CLUSTER_NODES=redis-node-1:6379,redis-node-2:6379,redis-node-3:6379,redis-node-4:6379,redis-node-5:6379,redis-node-6:6379
+  
 volumes:
   redis-data-1:
   redis-data-2:
@@ -150,7 +163,7 @@ volumes:
   redis-data-4:
   redis-data-5:
   redis-data-6:
-  postgres-data:
+  redisinsight_data:
 
 networks:
   redis-cluster:

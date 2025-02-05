@@ -1,0 +1,15 @@
+
+Test External Recomputation Cache
+
+curl "http://localhost:8080/cache/recompute"
+
+	•	1st request: Takes 2 seconds (no cache, recompute needed).
+	•	2nd request: Instant response (cached).
+	•	After TTL expires (~60s), recompute happens again in the background.
+
+
+Test Probabilistic Early Expiration Cache
+
+curl "http://localhost:8080/cache/probabilistic"
+-	TTL is randomized → Some keys expire earlier than others.
+	•	Prevents cache stampede when many users request expiring keys simultaneously.
