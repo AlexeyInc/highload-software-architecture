@@ -20,7 +20,7 @@ This project implements a Redis Cluster with master-slave replication, supports 
 
 *`probability = 1 - e^-beta(1 - remainingRatio)`*
 
-This method spreads out recomputation probabilistically rather than allowing all requests to trigger a refresh at once.
+*This method spreads out recomputation probabilistically rather than allowing all requests to trigger a refresh at once.*
 
 3. **Monitoring and Benchmarking**
 - RedisInsight: Provides a UI for visualizing keys, memory, and cluster nodes.
@@ -108,7 +108,8 @@ Although the lru strategy attempts to select the first 2,000 keys, it is evident
 
 3. `2_external_blocking_cache.sh`
 
-![Screenshot 2025-02-08 at 16 45 20](https://github.com/user-attachments/assets/92f0aac3-ffbb-4aca-8d11-7809d1077c7a)
+![Screenshot 2025-02-08 at 18 58 27](https://github.com/user-attachments/assets/79450a8b-7112-466d-b575-9bf48ab51a60)
+
 
 **Analysis:**
 Prevents cache stampedes using locking to ensure only one process recomputes expired values at a time.
@@ -118,7 +119,8 @@ Good balance between consistency and performance.
 
 4. `3_probabilistic_expiration_cache.sh`
 
-![Screenshot 2025-02-08 at 16 47 15](https://github.com/user-attachments/assets/69c90b6e-b08c-4d49-b40e-e6e399bad4a8)
+![Screenshot 2025-02-08 at 19 01 59](https://github.com/user-attachments/assets/b27ec91e-2f31-4568-aa39-41b9ae2781a5)
+
 
 **Analysis:**
 - Best transaction rate overall (~9.7% higher than External Blocking Recompute).
