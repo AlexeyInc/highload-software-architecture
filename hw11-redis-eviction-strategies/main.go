@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"math"
+	"math/rand/v2"
 	"net/http"
 	"os"
 	"strconv"
@@ -22,7 +24,7 @@ var (
 
 	defultKeysTTL = time.Minute * 10
 	customTTLSec  int
-	queryDBCount  int
+	beta          = 1.0
 )
 
 func main() {
@@ -191,18 +193,18 @@ func fetchWithProbabilisticExpiration(w http.ResponseWriter, r *http.Request) {
 
 	val, ttl, err := getCacheValueWithTTL(key)
 	if err == redis.Nil || shouldRecompute(ttl, customTTLSec) {
-
 		mutex, _ := locks.LoadOrStore(key, &sync.Mutex{})
 		lock := mutex.(*sync.Mutex)
 		lock.Lock()
 		defer lock.Unlock()
 
-		// Double check after acquiring lock
+		// Double-check after acquiring lock
 		if val, err := redisClient.Get(ctx, key).Result(); err == nil {
 			w.Write([]byte(val))
 			return
 		}
 
+		// Recompute new value
 		val, err = mockDBQuery(key)
 		if err == nil {
 			redisClient.Set(ctx, key, val, time.Duration(customTTLSec)*time.Second)
@@ -219,10 +221,14 @@ func shouldRecompute(ttl time.Duration, customTTLSec int) bool {
 	if ttl <= time.Millisecond {
 		return true
 	}
-	threshold := float64(ttl.Seconds()) / float64(customTTLSec)
-	return threshold < 0.4 // Recompute when TTL is < 40% of customTTL
+
+	remainingRatio := float64(ttl.Seconds()) / float64(customTTLSec) // 0.0 - 1.0
+	probability := 1 - math.Exp(-beta*(1-remainingRatio))            // Probabilistic early expiration formula
+
+	return rand.Float64() < probability
 }
 
+// Retrieves the cache value and TTL
 func getCacheValueWithTTL(key string) (string, time.Duration, error) {
 	val, err := redisClient.Get(ctx, key).Result()
 	if err != nil {
