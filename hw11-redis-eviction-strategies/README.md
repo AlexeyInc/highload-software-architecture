@@ -7,30 +7,30 @@ This project implements a Redis Cluster with master-slave replication, supports 
 ### Key Features
 1. **Redis Cluster & Eviction Strategies**
 
-*A Redis Cluster with 6 nodes is set up using docker compose.*
+   *A Redis Cluster with 6 nodes is set up using docker compose.*
 
-Supports different eviction policies, including:
-- allkeys-lru
-- allkeys-lfu
-- allkeys-random
-- volatile-ttl
-- A monitoring sidecard process listens for key evictions.
+   Supports different eviction policies, including:
+   - allkeys-lru
+   - allkeys-lfu
+   - allkeys-random
+   - volatile-ttl
+   - A monitoring sidecard process listens for key evictions.
 
 2. **Cache Interaction Strategies**
-- Direct Database Fetch (`/fetch/db/{key}`): Retrieves data directly from a mock DB.
-- Basic Caching (`/fetch/cache/{key}`): Fetches from cache, recomputes on cache miss.
-- External Recompute with Locking (`/fetch/external/{key}`): Ensures recomputation occurs only once using locks.
-- Probabilistic Early Expiration (`/fetch/probabilistic/{key}`): Implements a probabilistic cache clearing approach using:
+  - Direct Database Fetch (`/fetch/db/{key}`): Retrieves data directly from a mock DB.
+  - Basic Caching (`/fetch/cache/{key}`): Fetches from cache, recomputes on cache miss.
+  - External Recompute with Locking (`/fetch/external/{key}`): Ensures recomputation occurs only once using locks.
+  - Probabilistic Early Expiration (`/fetch/probabilistic/{key}`): Implements a probabilistic cache clearing approach using:
 
     *`probability = 1 - e^-beta(1 - remainingRatio)`*
 
     *This method spreads out recomputation probabilistically rather than allowing all requests to trigger a refresh at once.*
 
 3. **Monitoring and Benchmarking**
-- RedisInsight: Provides a UI for visualizing keys, memory, and cluster nodes.
-- Prometheus & Redis Exporter: Collects Redis performance metrics.
-- Grafana: Displays real-time cache analytics.
-- Siege Load Testing: Simulates concurrent requests to test cache efficiency.
+  - RedisInsight: Provides a UI for visualizing keys, memory, and cluster nodes.
+  - Prometheus & Redis Exporter: Collects Redis performance metrics.
+  - Grafana: Displays real-time cache analytics.
+  - Siege Load Testing: Simulates concurrent requests to test cache efficiency.
 
 ---
 
@@ -38,31 +38,31 @@ Supports different eviction policies, including:
 
 **1. Start Redis Cluster & Services**
 
-Run `docker-compose up -d`
+  Run `docker-compose up -d`
+  
+  Check connection to redis cluster via redisinsight on `http://localhost:5540`
 
-Check connection to redis cluster via redisinsight on `http://localhost:5540`
-
-**API**
-
-| Method | Endpoint                         | Description                                |
-|--------|----------------------------------|--------------------------------------------|
-| GET    | `/preloadKeys`                   | Preload sample keys                       |
-| GET    | `/evict/{policy}`                | Dynamically set eviction policy           |
-| GET    | `/fetch/db/{key}`                | Fetch data directly from the database     |
-| GET    | `/fetch/cache/{key}`             | Fetch from cache, recompute on cache miss |
-| GET    | `/fetch/external/{key}`          | External recomputation with locking       |
-| GET    | `/fetch/probabilistic/{key}`     | Probabilistic cache clearing              |
-| POST   | `/set/{key}/{value}/{ttl}`       | Set a value in cache                      |
-| DELETE | `/delete/{key}`                  | Delete a cache key                        |
+  **API**
+  
+  | Method | Endpoint                         | Description                                |
+  |--------|----------------------------------|--------------------------------------------|
+  | GET    | `/preloadKeys`                   | Preload sample keys                       |
+  | GET    | `/evict/{policy}`                | Dynamically set eviction policy           |
+  | GET    | `/fetch/db/{key}`                | Fetch data directly from the database     |
+  | GET    | `/fetch/cache/{key}`             | Fetch from cache, recompute on cache miss |
+  | GET    | `/fetch/external/{key}`          | External recomputation with locking       |
+  | GET    | `/fetch/probabilistic/{key}`     | Probabilistic cache clearing              |
+  | POST   | `/set/{key}/{value}/{ttl}`       | Set a value in cache                      |
+  | DELETE | `/delete/{key}`                  | Delete a cache key                        |
 
 **2. Run Load Tests**
-```
-chmod +x *.sh
-./0_simple_db_query.sh
-./1_unblocking_cache.sh
-./2_external_blocking_cache.sh
-./3_probabilistic_expiration_cache.sh
-```
+  ```
+  chmod +x *.sh
+  ./0_simple_db_query.sh
+  ./1_unblocking_cache.sh
+  ./2_external_blocking_cache.sh
+  ./3_probabilistic_expiration_cache.sh
+  ```
 
 **3. Monitor Metrics**
 - RedisInsight: http://localhost:5540
@@ -75,13 +75,13 @@ chmod +x *.sh
 
 1. Run `curl "http://localhost:8080/preloadKeys"` to init 10000 keys. 
 
-<img width="473" alt="Screenshot 2025-02-08 at 13 54 10" src="https://github.com/user-attachments/assets/fe6fb13a-531b-4364-8bcf-662c9da84ecb" />
+  <img width="473" alt="Screenshot 2025-02-08 at 13 54 10" src="https://github.com/user-attachments/assets/fe6fb13a-531b-4364-8bcf-662c9da84ecb" />
 
 
 2. Run `curl "http://localhost:8080/evict/lru"` to observe key eviction in Redis (with memory intentionally limited to 3000KB to trigger eviction using the LRU policy):
 
 
-<img width="492" alt="Screenshot 2025-02-08 at 14 00 33" src="https://github.com/user-attachments/assets/e6a8ff6e-4ae4-4d01-9b5f-a89d7a02c600" />
+  <img width="492" alt="Screenshot 2025-02-08 at 14 00 33" src="https://github.com/user-attachments/assets/e6a8ff6e-4ae4-4d01-9b5f-a89d7a02c600" />
 
 
 Although the **LRU** strategy attempts to evict the first ~2000 keys from the very beginning, it is evident that the cache eviction strategy is stochastic.
@@ -91,22 +91,22 @@ Although the **LRU** strategy attempts to evict the first ~2000 keys from the ve
 ### Testing & Performance Evaluation
 
 **The project includes scripts to test each cache strategy using Siege for benchmarking:**
-1. Standard DB Query (`0_simple_db_query.sh`)
-2. Unblocking Cache Fetch (`1_unblocking_cache.sh`)
-3. External Blocking Recompute (`2_external_blocking_cache.sh`)
-4. Probabilistic Expiration (`3_probabilistic_expiration_cache.sh`)
+  1. Standard DB Query (`0_simple_db_query.sh`)
+  2. Unblocking Cache Fetch (`1_unblocking_cache.sh`)
+  3. External Blocking Recompute (`2_external_blocking_cache.sh`)
+  4. Probabilistic Expiration (`3_probabilistic_expiration_cache.sh`)
 
 **Each test:**
-- Sets a sample key in Redis.
-- Runs a high-concurrency load test (`siege -c30 -t40S`).
-- Deletes the key to ensure independent runs.
+  - Sets a sample key in Redis.
+  - Runs a high-concurrency load test (`siege -c30 -t40S`).
+  - Deletes the key to ensure independent runs.
 
 
 ### Results
 
 1. `0_simple_db_query.sh`
 
-![Screenshot 2025-02-08 at 16 38 56](https://github.com/user-attachments/assets/061d786c-ed07-45b1-86a4-f7abe33b369b)
+  ![Screenshot 2025-02-08 at 16 38 56](https://github.com/user-attachments/assets/061d786c-ed07-45b1-86a4-f7abe33b369b)
 
 **Analysis:**
 - This approach directly queries the database, leading to high response times (~522ms) and low throughput.
@@ -115,7 +115,7 @@ Although the **LRU** strategy attempts to evict the first ~2000 keys from the ve
 
 2. `1_unblocking_cache.sh`
 
-![Screenshot 2025-02-08 at 16 44 18](https://github.com/user-attachments/assets/aaad6300-55c2-4aa2-92e2-10ed61f5c58c)
+  ![Screenshot 2025-02-08 at 16 44 18](https://github.com/user-attachments/assets/aaad6300-55c2-4aa2-92e2-10ed61f5c58c)
 
 **Analysis:**
 - Significant performance improvement compared to direct DB queries (~40x more transactions).
@@ -125,7 +125,7 @@ Although the **LRU** strategy attempts to evict the first ~2000 keys from the ve
 
 3. `2_external_blocking_cache.sh`
 
-![Screenshot 2025-02-08 at 18 58 27](https://github.com/user-attachments/assets/79450a8b-7112-466d-b575-9bf48ab51a60)
+  ![Screenshot 2025-02-08 at 18 58 27](https://github.com/user-attachments/assets/79450a8b-7112-466d-b575-9bf48ab51a60)
 
 
 **Analysis:**
@@ -137,7 +137,7 @@ Although the **LRU** strategy attempts to evict the first ~2000 keys from the ve
 
 4. `3_probabilistic_expiration_cache.sh`
 
-![Screenshot 2025-02-08 at 19 01 59](https://github.com/user-attachments/assets/b27ec91e-2f31-4568-aa39-41b9ae2781a5)
+  ![Screenshot 2025-02-08 at 19 01 59](https://github.com/user-attachments/assets/b27ec91e-2f31-4568-aa39-41b9ae2781a5)
 
 
 **Analysis:**
