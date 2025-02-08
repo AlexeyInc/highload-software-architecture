@@ -19,3 +19,5 @@ docker exec -it redis-node-1 redis-cli keys "*"
 
 To check a specific key:
 docker exec -it redis-node-1 redis-cli get samplekey
+
+// siege -c30 -t30S "http://localhost:8080/fetch/db/samplekey"
