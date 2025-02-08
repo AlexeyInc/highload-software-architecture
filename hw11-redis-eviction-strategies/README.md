@@ -51,6 +51,11 @@ chmod +x *.sh
 
 Run `curl "http://localhost:8080/preloadKeys"` to init 10000 keys. 
 
+<img width="473" alt="Screenshot 2025-02-08 at 13 54 10" src="https://github.com/user-attachments/assets/fe6fb13a-531b-4364-8bcf-662c9da84ecb" />
+
+Although the lru strategy attempts to select the first 2,000 keys, it is evident that the cache eviction strategy is stochastic.
+
+<img width="492" alt="Screenshot 2025-02-08 at 14 00 33" src="https://github.com/user-attachments/assets/e6a8ff6e-4ae4-4d01-9b5f-a89d7a02c600" />
 
 
 ### Testing & Performance Evaluation
@@ -63,5 +68,21 @@ The project includes scripts to test each cache strategy using Siege for benchma
 
 Each test:
 	•	Sets a sample key in Redis.
-	•	Runs a high-concurrency load test (siege -c30 -t40S).
+	•	Runs a high-concurrency load test (`siege -c30 -t40S`).
 	•	Deletes the key to ensure independent runs.
+
+1. `0_simple_db_query.sh`
+
+![Screenshot 2025-02-08 at 16 38 56](https://github.com/user-attachments/assets/061d786c-ed07-45b1-86a4-f7abe33b369b)
+
+2. `1_unblocking_cache.sh`
+
+![Screenshot 2025-02-08 at 16 44 18](https://github.com/user-attachments/assets/aaad6300-55c2-4aa2-92e2-10ed61f5c58c)
+
+3. `2_external_blocking_cache.sh`
+
+![Screenshot 2025-02-08 at 16 45 20](https://github.com/user-attachments/assets/92f0aac3-ffbb-4aca-8d11-7809d1077c7a)
+
+4. `4_probabilistic_expiration_cache.sh`
+
+![Screenshot 2025-02-08 at 16 47 15](https://github.com/user-attachments/assets/69c90b6e-b08c-4d49-b40e-e6e399bad4a8)
