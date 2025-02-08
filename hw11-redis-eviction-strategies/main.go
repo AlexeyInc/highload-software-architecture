@@ -198,13 +198,12 @@ func fetchWithProbabilisticExpiration(w http.ResponseWriter, r *http.Request) {
 		lock.Lock()
 		defer lock.Unlock()
 
-		// Double-check after acquiring lock
+		// Double check after acquiring lock
 		if val, err := redisClient.Get(ctx, key).Result(); err == nil {
 			w.Write([]byte(val))
 			return
 		}
 
-		// Recompute new value
 		val, err = mockDBQuery(key)
 		if err == nil {
 			redisClient.Set(ctx, key, val, time.Duration(customTTLSec)*time.Second)
@@ -228,7 +227,6 @@ func shouldRecompute(ttl time.Duration, customTTLSec int) bool {
 	return rand.Float64() < probability
 }
 
-// Retrieves the cache value and TTL
 func getCacheValueWithTTL(key string) (string, time.Duration, error) {
 	val, err := redisClient.Get(ctx, key).Result()
 	if err != nil {
@@ -242,7 +240,6 @@ func getCacheValueWithTTL(key string) (string, time.Duration, error) {
 	return val, ttl, nil
 }
 
-// Endpoint to set values in cache
 func setCacheValue(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	key := vars["key"]
