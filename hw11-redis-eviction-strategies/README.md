@@ -6,6 +6,7 @@ This project implements a Redis Cluster with master-slave replication, supports 
 
 ### Key Features
 1. **Redis Cluster & Eviction Strategies**
+
 *A Redis Cluster with 6 nodes is set up using docker compose.*
 
 Supports different eviction policies, including:
@@ -64,9 +65,9 @@ chmod +x *.sh
 ```
 
 **3. Monitor Metrics**
-    - RedisInsight: http://localhost:5540
-    - Grafana: http://localhost:3000
-    - Prometheus: http://localhost:9090
+- RedisInsight: http://localhost:5540
+- Grafana: http://localhost:3000
+- Prometheus: http://localhost:9090
 
 ---
 
@@ -76,13 +77,14 @@ chmod +x *.sh
 
 <img width="473" alt="Screenshot 2025-02-08 at 13 54 10" src="https://github.com/user-attachments/assets/fe6fb13a-531b-4364-8bcf-662c9da84ecb" />
 
+
 2. Run `curl "http://localhost:8080/evict/lru"` to observe key eviction in Redis (with memory intentionally limited to 3000KB to trigger eviction using the LRU policy):
 
 
 <img width="492" alt="Screenshot 2025-02-08 at 14 00 33" src="https://github.com/user-attachments/assets/e6a8ff6e-4ae4-4d01-9b5f-a89d7a02c600" />
 
 
-Although the **LRU** strategy attempts to select the first ~2000 keys, it is evident that the cache eviction strategy is stochastic.
+Although the **LRU** strategy attempts to evict the first ~2000 keys from the very beginning, it is evident that the cache eviction strategy is stochastic.
 
 ---
 
