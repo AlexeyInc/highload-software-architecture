@@ -83,9 +83,9 @@ Although the lru strategy attempts to select the first 2,000 keys, it is evident
 4. Probabilistic Expiration (`3_probabilistic_expiration_cache.sh`)
 
 **Each test:**
-    - Sets a sample key in Redis.
-    - Runs a high-concurrency load test (`siege -c30 -t40S`).
-    - Deletes the key to ensure independent runs.
+- Sets a sample key in Redis.
+- Runs a high-concurrency load test (`siege -c30 -t40S`).
+- Deletes the key to ensure independent runs.
 
 1. `0_simple_db_query.sh`
 
