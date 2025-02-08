@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"math/rand"
 	"net/http"
 	"os"
 	"strconv"
@@ -17,12 +16,13 @@ import (
 )
 
 var (
-	locks        = sync.Map{}
-	expireJitter = 10 // Jitter in seconds for early expiration
-	redisClient  *redis.ClusterClient
-	ctx          = context.Background()
+	locks       = sync.Map{}
+	redisClient *redis.ClusterClient
+	ctx         = context.Background()
 
 	defultKeysTTL = time.Minute * 10
+	customTTLSec  int
+	queryDBCount  int
 )
 
 func main() {
@@ -48,6 +48,7 @@ func main() {
 	r.HandleFunc("/fetch/external/{key}", fetchWithExternalRecomputation).Methods("GET")
 	r.HandleFunc("/fetch/probabilistic/{key}", fetchWithProbabilisticExpiration).Methods("GET")
 	r.HandleFunc("/set/{key}/{value}/{ttl}", setCacheValue).Methods("POST")
+	r.HandleFunc("/delete/{key}", deleteCacheKey).Methods("DELETE")
 
 	go monitorEvictions()
 
@@ -119,8 +120,6 @@ func mockDBQuery(key string) (string, error) {
 	return "value_from_db_" + key, nil
 }
 
-var ttlSec int
-
 // Method 1: Directly fetching from DB
 func fetchFromDB(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -141,10 +140,10 @@ func fetchWithCache(w http.ResponseWriter, r *http.Request) {
 	val, err := redisClient.Get(ctx, key).Result()
 	if err == redis.Nil {
 		val, err = mockDBQuery(key)
-		log.Printf("made DBQuery %s: %v", key, val)
+		log.Printf("WithCache made DBQuery %s: %v", key, val)
 
 		if err == nil {
-			redisClient.Set(ctx, key, val, time.Duration(ttlSec)*time.Second)
+			redisClient.Set(ctx, key, val, time.Duration(customTTLSec)*time.Second)
 		}
 	} else if err != nil {
 		http.Error(w, "Cache error", http.StatusInternalServerError)
@@ -179,9 +178,9 @@ func fetchWithExternalRecomputation(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "DB error", http.StatusInternalServerError)
 		return
 	}
-	log.Printf("made DBQuery %s: %v", key, val)
+	log.Printf("ExternalRecomputation made DBQuery %s: %v", key, val)
 
-	redisClient.Set(ctx, key, val, time.Duration(ttlSec)*time.Second)
+	redisClient.Set(ctx, key, val, time.Duration(customTTLSec)*time.Second)
 	w.Write([]byte(fmt.Sprintf("fetchWithExternalRecomputation: key:%s -> value: %s", key, val)))
 }
 
@@ -190,28 +189,51 @@ func fetchWithProbabilisticExpiration(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	key := vars["key"]
 
-	val, err := redisClient.Get(ctx, key).Result()
-	if err == redis.Nil || shouldRecompute(key) {
+	val, ttl, err := getCacheValueWithTTL(key)
+	if err == redis.Nil || shouldRecompute(ttl, customTTLSec) {
+
+		mutex, _ := locks.LoadOrStore(key, &sync.Mutex{})
+		lock := mutex.(*sync.Mutex)
+		lock.Lock()
+		defer lock.Unlock()
+
+		// Double check after acquiring lock
+		if val, err := redisClient.Get(ctx, key).Result(); err == nil {
+			w.Write([]byte(val))
+			return
+		}
+
 		val, err = mockDBQuery(key)
 		if err == nil {
-			redisClient.Set(ctx, key, val, time.Duration(rand.Intn(expireJitter))*time.Second)
+			redisClient.Set(ctx, key, val, time.Duration(customTTLSec)*time.Second)
 		}
-		log.Printf("made DBQuery %s: %v", key, val)
+		log.Printf("ProbabilisticExpiration made DBQuery %s: %v", key, val)
 	} else if err != nil {
 		http.Error(w, "Cache error", http.StatusInternalServerError)
 		return
 	}
 	w.Write([]byte(fmt.Sprintf("fetchWithProbabilisticExpiration: key:%s -> value: %s", key, val)))
-
 }
 
-func shouldRecompute(key string) bool {
-	ttl, err := redisClient.TTL(ctx, key).Result()
-	if err != nil || ttl <= 0 {
+func shouldRecompute(ttl time.Duration, customTTLSec int) bool {
+	if ttl <= time.Millisecond {
 		return true
 	}
-	threshold := float64(ttl.Seconds()) / 10.0 // Expire when 10% time left
-	return rand.Float64() < threshold
+	threshold := float64(ttl.Seconds()) / float64(customTTLSec)
+	return threshold < 0.4 // Recompute when TTL is < 40% of customTTL
+}
+
+func getCacheValueWithTTL(key string) (string, time.Duration, error) {
+	val, err := redisClient.Get(ctx, key).Result()
+	if err != nil {
+		return "", 0, err
+	}
+
+	ttl, err := redisClient.TTL(ctx, key).Result()
+	if err != nil {
+		return val, 0, err
+	}
+	return val, ttl, nil
 }
 
 // Endpoint to set values in cache
@@ -219,7 +241,21 @@ func setCacheValue(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	key := vars["key"]
 	value := vars["value"]
-	ttlSec, _ = strconv.Atoi(vars["ttl"])
-	redisClient.Set(ctx, key, value, time.Duration(ttlSec)*time.Second)
+	customTTLSec, _ = strconv.Atoi(vars["ttl"])
+	redisClient.Set(ctx, key, value, time.Duration(customTTLSec)*time.Second)
 	w.Write([]byte(fmt.Sprintf("setCacheValue: key:%s -> value: %s. Ok", key, value)))
+}
+
+func deleteCacheKey(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	key := vars["key"]
+
+	err := redisClient.Del(ctx, key).Err()
+	if err != nil {
+		log.Printf("Failed delete key %s: %v", key, err)
+		http.Error(w, fmt.Sprintf("Failed delete key: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	w.Write([]byte(fmt.Sprintf("Deleted key: %s", key)))
 }

@@ -11,8 +11,8 @@ curl -X GET http://localhost:8080/fetch/probabilistic/samplekey
 
 curl -X POST http://localhost:8080/set/samplekey/samplevalue/30
 
-// siege -c20 -t30S -f urls.txt
-
+curl -X DELETE http://localhost:8080/delete/some-key
+ 
 
 verify redis data 
 docker exec -it redis-node-1 redis-cli keys "*"
@@ -20,4 +20,18 @@ docker exec -it redis-node-1 redis-cli keys "*"
 To check a specific key:
 docker exec -it redis-node-1 redis-cli get samplekey
 
-// siege -c30 -t30S "http://localhost:8080/fetch/db/samplekey"
+----
+
+
+siege -c30 -t30S "http://localhost:8080/fetch/db/samplekey"
+siege -c30 -t30S "http://localhost:8080/fetch/cache/samplekey"
+siege -c30 -t30S "http://localhost:8080/fetch/external/samplekey"
+siege -c30 -t30S "http://localhost:8080/fetch/probabilistic/samplekey"
+
+
+chmod +x 0_simple_db_query.sh 1_unblocking_recompute_cache.sh 2_blocking_recompute_cache.sh 4_probabilistic_expiration_cache.sh
+
+./0_simple_db_query.sh
+./1_unblocking_recompute_cache.sh
+./2_blocking_recompute_cache.sh
+./4_probabilistic_expiration_cache.sh
