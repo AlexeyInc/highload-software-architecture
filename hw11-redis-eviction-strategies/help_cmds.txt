@@ -20,9 +20,9 @@ siege -c30 -t30S "http://localhost:8080/fetch/cache/samplekey"
 siege -c30 -t30S "http://localhost:8080/fetch/external/samplekey"
 siege -c30 -t30S "http://localhost:8080/fetch/probabilistic/samplekey"
 
-chmod +x 0_simple_db_query.sh 1_unblocking_cache.sh 2_external_blocking_cache.sh 4_probabilistic_expiration_cache.sh
+chmod +x 0_simple_db_query.sh 1_unblocking_cache.sh 2_external_blocking_cache.sh 3_probabilistic_expiration_cache.sh
 
 ./0_simple_db_query.sh
 ./1_unblocking_cache.sh
 ./2_external_blocking_cache.sh
-./4_probabilistic_expiration_cache.sh
+./3_probabilistic_expiration_cache.sh
