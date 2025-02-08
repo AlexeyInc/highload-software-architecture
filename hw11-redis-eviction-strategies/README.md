@@ -7,14 +7,14 @@ This project implements a Redis Cluster with master-slave replication, supports 
 ### Key Features
 1. **Redis Cluster & Eviction Strategies**
 
-*A Redis Cluster with 6 nodes is set up using docker compose.*
+   *A Redis Cluster with 6 nodes is set up using docker compose.*
 
-Supports different eviction policies, including:
-- allkeys-lru
-- allkeys-lfu
-- allkeys-random
-- volatile-ttl
-- A monitoring sidecard process listens for key evictions.
+   Supports different eviction policies, including:
+   - allkeys-lru
+   - allkeys-lfu
+   - allkeys-random
+   - volatile-ttl
+   - A monitoring sidecard process listens for key evictions.
 
 2. **Cache Interaction Strategies**
 - Direct Database Fetch (`/fetch/db/{key}`): Retrieves data directly from a mock DB.
