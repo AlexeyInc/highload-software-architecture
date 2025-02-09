@@ -5,9 +5,7 @@ services:
     ports:
       - "5672:5672"
       - "15672:15672"
-    environment:
-      RABBITMQ_DEFAULT_USER: admin
-      RABBITMQ_DEFAULT_PASS: admin
+    env_file: ./configs/config.env
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
 
@@ -31,22 +29,21 @@ services:
 
   influxdb:
     image: influxdb:1.11-alpine
-    container_name: influxdb
     platform: linux/amd64
+    env_file: ./configs/config.env
     ports:
-      - '8086:8086'
+      - '127.0.0.1:8086:8086'
     volumes:
+      - ./:/imports
       - influxdb_data:/var/lib/influxdb
-    environment:
-      - INFLUXDB_DB=queues_benchmark
-      - INFLUXDB_ADMIN_USER=admin
-      - INFLUXDB_ADMIN_PASSWORD=admin
-      - INFLUXDB_HTTP_AUTH_ENABLED=true
     restart: unless-stopped
 
   telegraf:
-    image: telegraf:latest
-    container_name: telegraf
+    image: telegraf:1.33.0
+    platform: linux/amd64
+    volumes:
+      - ./configs/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+      - /var/run/docker.sock:/var/run/docker.sock
     depends_on:
       - influxdb
       - rabbitmq
@@ -54,15 +51,11 @@ services:
       - redis_aof
     links:
       - influxdb
-      - rabbitmq
-      - redis_rdb
-      - redis_aof
-    restart: unless-stopped
+    environment:
+      - HOSTNAME=telegraf 
     ports:
       - '127.0.0.1:8125:8125/udp'
-    volumes:
-      - ./configs/telegraf.conf:/etc/telegraf/telegraf.conf:ro
-      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped 
 
   grafana:
     image: grafana/grafana:latest
