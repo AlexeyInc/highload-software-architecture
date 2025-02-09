@@ -1,0 +1,82 @@
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+
+  redis_rdb:
+    image: redis:latest
+    container_name: redis_rdb
+    command: redis-server --save 60 1 --appendonly no
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_rdb_data:/data
+
+  redis_aof:
+    image: redis:latest
+    container_name: redis_aof
+    command: redis-server --save 60 1 --appendonly yes
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_aof_data:/data
+
+  influxdb:
+    image: influxdb:1.11-alpine
+    container_name: influxdb
+    platform: linux/amd64
+    ports:
+      - '8086:8086'
+    volumes:
+      - influxdb_data:/var/lib/influxdb
+    environment:
+      - INFLUXDB_DB=queues_benchmark
+      - INFLUXDB_ADMIN_USER=admin
+      - INFLUXDB_ADMIN_PASSWORD=admin
+      - INFLUXDB_HTTP_AUTH_ENABLED=true
+    restart: unless-stopped
+
+  telegraf:
+    image: telegraf:latest
+    container_name: telegraf
+    depends_on:
+      - influxdb
+      - rabbitmq
+      - redis_rdb
+      - redis_aof
+    links:
+      - influxdb
+      - rabbitmq
+      - redis_rdb
+      - redis_aof
+    restart: unless-stopped
+    ports:
+      - '127.0.0.1:8125:8125/udp'
+    volumes:
+      - ./configs/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    depends_on:
+      - influxdb
+    volumes:
+      - grafana_data:/var/lib/grafana
+
+volumes:
+  rabbitmq_data:
+  redis_rdb_data:
+  redis_aof_data:
+  influxdb_data:
+  grafana_data:

@@ -1,0 +1,13 @@
+Set up three Docker containers for RabbitMQ, Redis (RDB), and Redis (AOF), configure them properly, 
+and implement two scripts to push and pull messages for performance testing. 
+The monitoring stack will be based on TIG (Telegraf + InfluxDB + Grafana).
+
+
+Check Grafana metrics for:
+	•	Throughput (ops/sec)
+	•	Latency
+	•	Message loss (if any)
+	•	CPU/memory usage
+
+
+chmod +x pull.sh push.sh
