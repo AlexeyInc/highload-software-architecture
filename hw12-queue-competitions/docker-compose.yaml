@@ -64,8 +64,16 @@ services:
       - "3000:3000"
     depends_on:
       - influxdb
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin    
+      - GF_SECURITY_ADMIN_PASSWORD=admin 
+      - GF_AUTH_ANONYMOUS_ENABLED=true   
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin  
+      - GF_USERS_ALLOW_SIGN_UP=true
     volumes:
       - grafana_data:/var/lib/grafana
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
+      - ./configs/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
 
 volumes:
   rabbitmq_data:

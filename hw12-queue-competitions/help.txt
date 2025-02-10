@@ -11,3 +11,44 @@ Check Grafana metrics for:
 
 
 chmod +x pull.sh push.sh
+
+chmod +x pull_rabbitmq.sh pull_redis_aof.sh pull_redis_rdb.sh push_rabbitmq.sh push_redis_aof.sh push_redis_rdb.sh
+
+
+./generic_pull.sh rabbitmq &
+./generic_pull.sh redis_rdb &
+./generic_pull.sh redis_aof &
+
+siege -c50 -t30S -b "bash -c './generic_push.sh rabbitmq'"
+siege -c50 -t30S -b "bash -c './generic_push.sh redis_rdb'"
+siege -c50 -t30S -b "bash -c './generic_push.sh redis_aof'"
+
+rm -f ./messages_started.lock
+
+python3 -m http.server 8080 --cgi &
+
+mkdir -p cgi-bin
+mv generic_push.cgi cgi-bin/
+chmod +x cgi-bin/generic_push.cgi
+
+mv generic_push.sh generic_push.cgi
+chmod +x generic_push.cgi
+
+
+Проверить очереди
+docker exec -it rabbitmq rabbitmqctl list_queues
+docker exec -it redis_aof redis-cli LLEN test_queue
+docker exec -it redis_rdb redis-cli LLEN test_queue
+
+./pull_rabbitmq.sh
+
+
+----
+
+Нужно настроить Grafana и запускать скрипты через консоль
+timeout 30s seq 50 | xargs -n1 -P50 bash -c './generic_push.sh rabbitmq'
+timeout 30s seq 50 | xargs -n1 -P50 bash -c './generic_push.sh redis_rdb'
+timeout 30s seq 50 | xargs -n1 -P50 bash -c './generic_push.sh redis_aof'
+
+
+5780
