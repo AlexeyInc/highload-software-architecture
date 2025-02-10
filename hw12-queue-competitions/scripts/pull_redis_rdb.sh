@@ -1,6 +1,5 @@
 #!/bin/bash
 
-# Redis RDB settings
 REDIS_RDB_QUEUE="test_queue"
 
 echo "Consuming message from Redis RDB..."

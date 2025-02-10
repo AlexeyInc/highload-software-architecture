@@ -1,9 +1,7 @@
 #!/bin/bash
 
-# Redis AOF settings
 REDIS_AOF_QUEUE="test_queue"
 
-# Define message payload
 MESSAGE="Hello, Redis AOF!"
 
 echo "Publishing message to Redis AOF..."

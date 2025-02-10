@@ -1,6 +1,5 @@
 #!/bin/bash
 
-# RabbitMQ settings
 RABBITMQ_HOST="localhost"
 RABBITMQ_QUEUE="test_queue"
 RABBITMQ_USER="guest"
@@ -12,7 +11,6 @@ MESSAGE=$(curl -s -u "$RABBITMQ_USER:$RABBITMQ_PASS" -X POST \
     -H "Content-Type: application/json" \
     -d '{"count":1, "ackmode":"ack_requeue_false", "encoding":"auto", "truncate":500}')
 
-# Extract message payload
 MESSAGE_PAYLOAD=$(echo "$MESSAGE" | jq -r '.[0].payload')
 
 if [ "$MESSAGE_PAYLOAD" != "null" ]; then

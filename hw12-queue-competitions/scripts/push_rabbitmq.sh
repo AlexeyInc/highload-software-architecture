@@ -1,12 +1,10 @@
 #!/bin/bash
 
-# RabbitMQ settings
 RABBITMQ_HOST="localhost"
 RABBITMQ_QUEUE="test_queue"
 RABBITMQ_EXCHANGE="test_exchange"
 RABBITMQ_ROUTING_KEY="test_key"
 
-# Define message payload
 MESSAGE="Hello, RabbitMQ!"
 
 echo "Setting up RabbitMQ queue and exchange..."

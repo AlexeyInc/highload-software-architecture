@@ -1,6 +1,5 @@
 #!/bin/bash
 
-# Redis AOF settings
 REDIS_AOF_QUEUE="test_queue"
 
 echo "Consuming message from Redis AOF..."
