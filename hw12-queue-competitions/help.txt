@@ -50,5 +50,17 @@ timeout 30s seq 50 | xargs -n1 -P50 bash -c './generic_push.sh rabbitmq'
 timeout 30s seq 50 | xargs -n1 -P50 bash -c './generic_push.sh redis_rdb'
 timeout 30s seq 50 | xargs -n1 -P50 bash -c './generic_push.sh redis_aof'
 
+gtimeout 25s bash -c 'while true; do seq 50 | xargs -n1 -P50 bash -c "./generic_push.sh rabbitmq"; done'
+gtimeout 25s bash -c 'while true; do seq 50 | xargs -n1 -P50 bash -c "./generic_push.sh redis_rdb"; done'
+gtimeout 25s bash -c 'while true; do seq 50 | xargs -n1 -P50 bash -c "./generic_push.sh redis_aof"; done'
+
+
+siege -c50 -t30S -b "http://localhost:8080/publish/rabbitmq"
+siege -c50 -t30S -b "http://localhost:8080/publish/redis_rdb"
+siege -c50 -t30S -b "http://localhost:8080/publish/redis_aof"
 
 5780
+10991
+
+
+6908
