@@ -19,10 +19,6 @@ chmod +x pull_rabbitmq.sh pull_redis_aof.sh pull_redis_rdb.sh push_rabbitmq.sh p
 ./generic_pull.sh redis_rdb &
 ./generic_pull.sh redis_aof &
 
-siege -c50 -t30S -b "bash -c './generic_push.sh rabbitmq'"
-siege -c50 -t30S -b "bash -c './generic_push.sh redis_rdb'"
-siege -c50 -t30S -b "bash -c './generic_push.sh redis_aof'"
-
 rm -f ./messages_started.lock
 
 python3 -m http.server 8080 --cgi &
@@ -44,11 +40,6 @@ docker exec -it redis_rdb redis-cli LLEN test_queue
 
 
 ----
-
-Нужно настроить Grafana и запускать скрипты через консоль
-timeout 30s seq 50 | xargs -n1 -P50 bash -c './generic_push.sh rabbitmq'
-timeout 30s seq 50 | xargs -n1 -P50 bash -c './generic_push.sh redis_rdb'
-timeout 30s seq 50 | xargs -n1 -P50 bash -c './generic_push.sh redis_aof'
 
 gtimeout 25s bash -c 'while true; do seq 50 | xargs -n1 -P50 bash -c "./generic_push.sh rabbitmq"; done'
 gtimeout 25s bash -c 'while true; do seq 50 | xargs -n1 -P50 bash -c "./generic_push.sh redis_rdb"; done'

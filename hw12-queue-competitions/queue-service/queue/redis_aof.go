@@ -1,4 +1,4 @@
-package main
+package queue
 
 import (
 	"context"
@@ -11,13 +11,13 @@ import (
 
 var redisAofClient *redis.Client
 
-func setupRedisAOF() {
+func SetupRedisAOF() {
 	redisAofClient = redis.NewClient(&redis.Options{
 		Addr: "localhost:6380", // Change to match your Redis AOF instance
 	})
 }
 
-func publishRedisAOF(c *gin.Context) {
+func PublishRedisAOF(c *gin.Context) {
 	ctx := context.Background()
 	err := redisAofClient.RPush(ctx, "test_queue", "Hello, Redis AOF!").Err()
 	if err != nil {
@@ -27,7 +27,7 @@ func publishRedisAOF(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Message published to Redis AOF!"})
 }
 
-func consumeRedisAOF() {
+func ConsumeRedisAOF() {
 	ctx := context.Background()
 	for {
 		msg, err := redisAofClient.BLPop(ctx, 0, "test_queue").Result()

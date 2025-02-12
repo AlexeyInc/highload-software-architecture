@@ -1,4 +1,4 @@
-package main
+package queue
 
 import (
 	"context"
@@ -11,13 +11,13 @@ import (
 
 var redisRdbClient *redis.Client
 
-func setupRedisRDB() {
+func SetupRedisRDB() {
 	redisRdbClient = redis.NewClient(&redis.Options{
 		Addr: "localhost:6379",
 	})
 }
 
-func publishRedisRDB(c *gin.Context) {
+func PublishRedisRDB(c *gin.Context) {
 	ctx := context.Background()
 	err := redisRdbClient.RPush(ctx, "test_queue", "Hello, Redis RDB!").Err()
 	if err != nil {
@@ -27,7 +27,7 @@ func publishRedisRDB(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Message published to Redis RDB!"})
 }
 
-func consumeRedisRDB() {
+func ConsumeRedisRDB() {
 	ctx := context.Background()
 	for {
 		msg, err := redisRdbClient.BLPop(ctx, 0, "test_queue").Result()

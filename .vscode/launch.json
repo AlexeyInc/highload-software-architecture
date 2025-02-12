@@ -9,7 +9,7 @@
             "type": "go",
             "request": "launch",
             "mode": "auto",
-            "program": "${workspaceFolder}/hw11-redis-eviction-strategies/main.go"
+            "program": "${workspaceFolder}/hw12-queue-competitions/queue-service/main.go"
         }
     ]
 }

@@ -1,4 +1,4 @@
-package main
+package queue
 
 import (
 	"log"
@@ -12,7 +12,7 @@ var rabbitConn *amqp.Connection
 var rabbitChannel *amqp.Channel
 var rabbitQueue amqp.Queue
 
-func setupRabbitMQ() {
+func SetupRabbitMQ() {
 	var err error
 	rabbitConn, err = amqp.Dial("amqp://guest:guest@localhost:5672/")
 	if err != nil {
@@ -32,7 +32,7 @@ func setupRabbitMQ() {
 	}
 }
 
-func publishRabbitMQ(c *gin.Context) {
+func PublishRabbitMQ(c *gin.Context) {
 	body := "Hello, RabbitMQ!"
 	err := rabbitChannel.Publish(
 		"", rabbitQueue.Name, false, false,
@@ -45,7 +45,7 @@ func publishRabbitMQ(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Message published to RabbitMQ!"})
 }
 
-func consumeRabbitMQ() {
+func ConsumeRabbitMQ() {
 	msgs, err := rabbitChannel.Consume(rabbitQueue.Name, "", true, false, false, false, nil)
 	if err != nil {
 		log.Fatalf("Failed to register a consumer: %v", err)
