@@ -56,7 +56,7 @@ Saves time by allowing a single script for multiple queues.
 
 ---
 
-### Results
+## Results
 
 **RabbitMQ**
 
@@ -78,6 +78,7 @@ Longest transaction:	      110.00 ms
 Shortest transaction:	        0.00 ms
 ```
 `curl "http://localhost:8080/msg/counter/rabbitmq"`
+
 `Message consumed in rabbitmq: 168636`
 
 2. `siege -c50 -t30S -b "http://localhost:8080/publish/rabbitmq"`
@@ -139,12 +140,13 @@ Shortest transaction:	        0.00 ms
 `curl "http://localhost:8080/msg/counter/redis_rdb"`
 
 `Message consumed in redis_rdb: 91481`
+
 ~1-2s latter
 `Message consumed in redis_rdb: 174962`
 
 
 2. `siege -c50 -t30S -b "http://localhost:8080/publish/redis_rdb"`
-
+```
 Lifting the server siege...
 Transactions:		   176275    hits
 Availability:		      100.00 %
@@ -158,8 +160,10 @@ Successful transactions:   176275
 Failed transactions:	        0
 Longest transaction:	      220.00 ms
 Shortest transaction:	        0.00 ms
+```
 
 `Message consumed in redis_rdb: 101506`
+
 ~1-2s latter
 `Message consumed in redis_rdb: 176275`
 
@@ -180,6 +184,7 @@ Longest transaction:	     1040.00 ms
 Shortest transaction:	        0.00 ms
 ```
 `Message consumed in redis_rdb: 100966`
+
 ~1-2s latter
 `Message consumed in redis_rdb: 167585`
 
@@ -206,6 +211,7 @@ Shortest transaction:	        0.00 ms
 `curl "http://localhost:8080/msg/counter/redis_aof"`
 
 `"Message consumed in redis_aof: 92192"`
+
 ~1-2s latter
 `Message consumed in redis_aof: 178606`
 
@@ -226,6 +232,7 @@ Longest transaction:	      210.00 ms
 Shortest transaction:	        0.00 ms
 ```
 `Message consumed in redis_aof: 93101`
+
 ~1-2s latter
 `Message consumed in redis_aof: 172954`
 
@@ -246,25 +253,34 @@ Longest transaction:	      250.00 ms
 Shortest transaction:	        0.00 ms
 ```
 `Message consumed in redis_aof: 95806`
+
 ~1-2s latter
 `Message consumed in redis_aof: 164058`
 
 ---
 
-### Final thoughts
+## Final thoughts
 
 1. **Best for High Message Throughput** -> **Redis AOF & Redis RDB**
 - Redis (AOF & RDB) outperforms RabbitMQ in throughput, handling ~5,700-5,800 TPS.
-- If raw speed matters more than durability & ordering, Redis is a better queue.
 
 2. **Best for nearly Real-Time Processing** -> **RabbitMQ**
 - RabbitMQ instantly consumes messages, while Redis queues show a 1-2s delay.
 - Redis BLPOP is slower at high loads, affecting real-time applications.
 
-3. **Best for Large-Scale Parallel Consumers** -> ?
+3. **Large-Scale Parallel Consumers** -> Depends on the use case
 - RabbitMQ scales well, but at 100 concurrent clients, throughput drops by ~15%.
 - Redis RDB & AOF also drop at high concurrency but maintain higher TPS.
 
-4. **Best for Durable Queue Persistence** -> ?
+4. **Best for Durable Queue Persistence** -> Depends on failure tolerance & performance needs
 - **Redis AOF** (Append-Only File) persists every operation, ensuring data safety.
 - **RabbitMQ** also guarantees durability but has more overhead.
+Assumtions:
+- Redis AOF if data safety is more important than performance.
+- RabbitMQ if you need persistent, transactional message processing with requeuing capabilities.
+
+### Insights:
+**Disk Write Efficiency:**
+Redis RDB slightly outperforms AOF in disk write efficiency when saving snapshots less frequently.
+- In tests, RDB saved data every 1 second when at least one change occurred, which resulted in lower disk I/O overhead compared to continuous writes in AOF.
+- If write efficiency is a concern, RDB can be a viable alternative to AOF when some data loss is acceptable.
