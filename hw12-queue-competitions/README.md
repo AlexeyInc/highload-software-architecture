@@ -117,11 +117,10 @@ Shortest transaction:	        0.00 ms
 ```
 `Message consumed in rabbitmq: 143864`
 
-Concurency 25
-![Screenshot 2025-02-15 at 15 52 14](https://github.com/user-attachments/assets/cb744976-8ae6-4c8e-9cc9-3e804b97ce08)
 
-Concurency 50
-![Screenshot 2025-02-15 at 15 52 19](https://github.com/user-attachments/assets/c96ae4ad-c18a-41b3-8fad-9ddba9961f10)
+Concurency 25             |  Concurency 50
+:-------------------------:|:-------------------------:
+![Screenshot 2025-02-15 at 15 52 14](https://github.com/user-attachments/assets/cb744976-8ae6-4c8e-9cc9-3e804b97ce08)  |  ![Screenshot 2025-02-15 at 15 52 19](https://github.com/user-attachments/assets/c96ae4ad-c18a-41b3-8fad-9ddba9961f10)
 
 At all concurrency levels, the peak number of published but unconsumed messages reached 65K, regardless of whether the concurrency was 25, 50 or 100.
 
