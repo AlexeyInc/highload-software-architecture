@@ -30,10 +30,12 @@ func SetupRabbitMQ() {
 	if err != nil {
 		log.Fatalf("Failed to declare queue: %v", err)
 	}
+
+	initMutex()
 }
 
 func PublishRabbitMQ(c *gin.Context) {
-	body := "Hello, RabbitMQ!"
+	body := "Hello, RabbitMQ"
 	err := rabbitChannel.Publish(
 		"", rabbitQueue.Name, false, false,
 		amqp.Publishing{ContentType: "text/plain", Body: []byte(body)},
@@ -53,5 +55,6 @@ func ConsumeRabbitMQ() {
 
 	for msg := range msgs {
 		log.Printf("RabbitMQ received: %s", msg.Body)
+		updateRabbitMQCounter()
 	}
 }
