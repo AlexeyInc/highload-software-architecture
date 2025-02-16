@@ -1,0 +1,8 @@
+# Siege test for Least Connections Load Balancer
+siege -c 50 -t 30s http://localhost:8081/image/sample.jpg
+
+# Siege test for Hash-Based Load Balancer
+siege -c 50 -t 30s http://localhost:8082/image/sample.jpg
+
+# Siege test with mixed images for cache efficiency benchmarking
+siege -c 50 -t 30s -f urls.txt
