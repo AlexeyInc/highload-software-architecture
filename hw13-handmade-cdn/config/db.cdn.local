@@ -9,5 +9,5 @@ $TTL 86400
     IN  NS  ns1.cdn.local.
 
 ns1 IN  A   192.168.97.5  ; BIND Server
-cdn.local. IN A 192.168.97.8  ; Load Balancer 1
-cdn2.local. IN A 192.168.97.9  ; Load Balancer 2
+cdn.local. IN A 192.168.97.6  ; Load Balancer 1  
+cdn2.local. IN A 192.168.97.7  ; Load Balancer 2 
