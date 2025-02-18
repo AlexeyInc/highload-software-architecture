@@ -1,0 +1,13 @@
+$TTL 86400
+@   IN  SOA ns1.cdn.local. admin.cdn.local. (
+        20240216 ; Serial
+        3600     ; Refresh
+        1800     ; Retry
+        604800   ; Expire
+        86400 )  ; Minimum TTL
+
+    IN  NS  ns1.cdn.local.
+
+ns1 IN  A   192.168.97.5  ; BIND Server
+cdn.local. IN A 192.168.97.8  ; Load Balancer 1
+cdn2.local. IN A 192.168.97.9  ; Load Balancer 2

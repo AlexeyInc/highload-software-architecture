@@ -1,23 +1,30 @@
-version: '3.8'
-
 services:
-  bind:
-    image: sameersbn/bind
-    platform: linux/amd64
-    container_name: bind
+  bind9:
+    image: ubuntu/bind9
+    container_name: bind9
+    restart: always
     ports:
       - "53:53/tcp"
       - "53:53/udp"
-    networks:
-      - cdn_net
+      - "127.0.0.1:953:953/tcp"
     volumes:
-      - ./bind:/data/bind
+      - ./config/named.conf:/etc/bind/named.conf
+      - ./config/named.conf.options:/etc/bind/named.conf.options
+      - ./config/named.conf.local:/etc/bind/named.conf.local
+      - ./config/db.cdn.local:/etc/bind/db.cdn.local
+      - ./cache:/var/cache/bind
+      - ./log:/var/log/bind
+      - /run/named:/run/named
+    environment:
+      - BIND9_USER=root
+    cap_add:
+      - NET_ADMIN
 
   load_balancer_1:
     image: nginx:latest
     container_name: load_balancer_1
     ports:
-      - "8081:80"
+      - "8081:8081"
     volumes:
       - ./nginx_lb1.conf:/etc/nginx/nginx.conf
     networks:
@@ -25,21 +32,17 @@ services:
     depends_on:
       - node1
       - node2
-      - node3
-      - node4
 
   load_balancer_2:
     image: nginx:latest
     container_name: load_balancer_2
     ports:
-      - "8082:80"
+      - "8082:8082"
     volumes:
       - ./nginx_lb2.conf:/etc/nginx/nginx.conf
     networks:
       - cdn_net
     depends_on:
-      - node1
-      - node2
       - node3
       - node4
 

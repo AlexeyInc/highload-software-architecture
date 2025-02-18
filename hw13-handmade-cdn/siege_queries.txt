@@ -6,3 +6,17 @@ siege -c 50 -t 30s http://localhost:8082/image/sample.jpg
 
 # Siege test with mixed images for cache efficiency benchmarking
 siege -c 50 -t 30s -f urls.txt
+
+docker exec -it load_balancer_1 curl -v http://node1:8080/image/sample.jpg
+
+docker exec -it load_balancer_1 bash -c "apt update && apt install -y net-tools"
+
+curl http://cdn.local:8081/image/sample.jpg
+
+docker exec -it bind cat /data/bind/named.conf
+
+docker exec -it bind nslookup cdn.local 127.0.0.1
+
+
+sudo mkdir -p /etc/resolver
+sudo nano /etc/resolver/cdn.local
