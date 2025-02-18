@@ -3,6 +3,7 @@ version: '3.8'
 services:
   bind:
     image: sameersbn/bind
+    platform: linux/amd64
     container_name: bind
     ports:
       - "53:53/tcp"
@@ -10,7 +11,7 @@ services:
     networks:
       - cdn_net
     volumes:
-      - ./bind:/etc/bind
+      - ./bind:/data/bind
 
   load_balancer_1:
     image: nginx:latest
@@ -43,7 +44,7 @@ services:
       - node4
 
   node1:
-    build: ./node
+    build: .
     container_name: node1
     networks:
       - cdn_net
@@ -51,7 +52,7 @@ services:
       - cache_data:/cache
 
   node2:
-    build: ./node
+    build: .
     container_name: node2
     networks:
       - cdn_net
@@ -59,7 +60,7 @@ services:
       - cache_data:/cache
 
   node3:
-    build: ./node
+    build: .
     container_name: node3
     networks:
       - cdn_net
@@ -67,7 +68,7 @@ services:
       - cache_data:/cache
 
   node4:
-    build: ./node
+    build: .
     container_name: node4
     networks:
       - cdn_net
