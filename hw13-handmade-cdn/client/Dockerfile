@@ -11,4 +11,8 @@ FROM alpine:latest
 WORKDIR /app
 COPY --from=builder /app/client .
 
+# Install curl in the Alpine container
+RUN apk add --no-cache curl
+
+EXPOSE 8080
 CMD ["./client"]

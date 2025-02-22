@@ -26,7 +26,7 @@ services:
     image: nginx:latest
     container_name: load_balancer_1
     ports:
-      - "8081:8081"
+      - "80:80"
     volumes:
       - ./nginx_lb1.conf:/etc/nginx/nginx.conf
     networks:
@@ -40,7 +40,7 @@ services:
     image: nginx:latest
     container_name: load_balancer_2
     ports:
-      - "8082:8082"
+      - "8080:80"
     volumes:
       - ./nginx_lb2.conf:/etc/nginx/nginx.conf
     networks:

@@ -25,3 +25,7 @@ curl http://cdn.local:8081/image/sample.jpg
 
 sudo mkdir -p /etc/resolver
 sudo nano /etc/resolver/cdn.local
+
+
+docker exec -it client_ukraine curl http://localhost:8080/request-image
+docker exec -it client_europe curl http://localhost:8080/request-image
