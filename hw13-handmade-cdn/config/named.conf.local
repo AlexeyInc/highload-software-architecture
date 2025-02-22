@@ -1,9 +1,0 @@
-zone "cdn.local" {
-    type master;
-    file "/etc/bind/db.cdn.local";
-};
-
-zone "cdn2.local" {
-    type master;
-    file "/etc/bind/db.cdn.local";
-};

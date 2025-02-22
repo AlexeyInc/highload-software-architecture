@@ -9,9 +9,8 @@ services:
       - "127.0.0.1:953:953/tcp"
     volumes:
       - ./config/named.conf:/etc/bind/named.conf
-      - ./config/named.conf.options:/etc/bind/named.conf.options
-      - ./config/named.conf.local:/etc/bind/named.conf.local
       - ./config/db.cdn.local:/etc/bind/db.cdn.local
+      - ./config/db.cdn2.local:/etc/bind/db.cdn2.local
       - ./cache:/var/cache/bind
       - ./log:/var/log/bind
       - /run/named:/run/named
@@ -19,6 +18,9 @@ services:
       - BIND9_USER=root
     cap_add:
       - NET_ADMIN
+    networks:
+      cdn_net:
+        ipv4_address: 192.168.97.5
 
   load_balancer_1:
     image: nginx:latest
@@ -28,7 +30,8 @@ services:
     volumes:
       - ./nginx_lb1.conf:/etc/nginx/nginx.conf
     networks:
-      - cdn_net
+      cdn_net:
+        ipv4_address: 192.168.97.6
     depends_on:
       - node1
       - node2
@@ -41,7 +44,8 @@ services:
     volumes:
       - ./nginx_lb2.conf:/etc/nginx/nginx.conf
     networks:
-      - cdn_net
+      cdn_net:
+        ipv4_address: 192.168.97.7
     depends_on:
       - node3
       - node4
@@ -50,7 +54,8 @@ services:
     build: .
     container_name: node1
     networks:
-      - cdn_net
+      cdn_net:
+        ipv4_address: 192.168.97.8
     volumes:
       - cache_data:/cache
 
@@ -58,7 +63,8 @@ services:
     build: .
     container_name: node2
     networks:
-      - cdn_net
+      cdn_net:
+        ipv4_address: 192.168.97.9
     volumes:
       - cache_data:/cache
 
@@ -66,7 +72,8 @@ services:
     build: .
     container_name: node3
     networks:
-      - cdn_net
+      cdn_net:
+        ipv4_address: 192.168.97.10
     volumes:
       - cache_data:/cache
 
@@ -74,13 +81,41 @@ services:
     build: .
     container_name: node4
     networks:
-      - cdn_net
+      cdn_net:
+        ipv4_address: 192.168.97.11
     volumes:
       - cache_data:/cache
+
+  client_ukraine:
+    build: ./client
+    container_name: client_ukraine
+    networks:
+      cdn_net:
+        ipv4_address: 192.168.97.20
+    depends_on:
+      - bind9
+    environment:
+      - REGION=UA
+      - DNS_SERVER=192.168.97.5
+
+  client_europe:
+    build: ./client
+    container_name: client_europe
+    networks:
+      cdn_net:
+        ipv4_address: 192.168.97.21
+    depends_on:
+      - bind9
+    environment:
+      - REGION=EU
+      - DNS_SERVER=192.168.97.5
 
 networks:
   cdn_net:
     driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.97.0/24
 
 volumes:
   cache_data:
