@@ -8,9 +8,9 @@ services:
       - "53:53/udp"
       - "127.0.0.1:953:953/tcp"
     volumes:
-      - ./config/named.conf:/etc/bind/named.conf
-      - ./config/db.cdn.local:/etc/bind/db.cdn.local
-      - ./config/db.cdn2.local:/etc/bind/db.cdn2.local
+      - ./config/cdn/named.conf:/etc/bind/named.conf
+      - ./config/cdn/db.cdn.local:/etc/bind/db.cdn.local
+      - ./config/cdn/db.cdn2.local:/etc/bind/db.cdn2.local
       - ./cache:/var/cache/bind
       - ./log:/var/log/bind
       - /run/named:/run/named
@@ -28,7 +28,7 @@ services:
     ports:
       - "80:80"
     volumes:
-      - ./nginx_lb1.conf:/etc/nginx/nginx.conf
+      - ./config/nginx/nginx_lb1.conf:/etc/nginx/nginx.conf
     networks:
       cdn_net:
         ipv4_address: 192.168.97.6
@@ -42,7 +42,7 @@ services:
     ports:
       - "8080:80"
     volumes:
-      - ./nginx_lb2.conf:/etc/nginx/nginx.conf
+      - ./config/nginx/nginx_lb2.conf:/etc/nginx/nginx.conf
     networks:
       cdn_net:
         ipv4_address: 192.168.97.7

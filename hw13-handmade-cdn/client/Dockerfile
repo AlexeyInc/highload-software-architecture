@@ -6,13 +6,13 @@ COPY main.go .
 RUN go mod init client && go mod tidy
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o client .
 
-FROM alpine:latest
+FROM debian:bullseye-slim
 
 WORKDIR /app
 COPY --from=builder /app/client .
 
-# Install curl in the Alpine container
-RUN apk add --no-cache curl
+RUN apt update && apt install -y curl siege && rm -rf /var/lib/apt/lists/*
 
 EXPOSE 8080
+ENTRYPOINT ["/bin/sh", "-c"]
 CMD ["./client"]
