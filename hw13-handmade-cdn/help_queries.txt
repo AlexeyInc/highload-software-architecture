@@ -1,0 +1,6 @@
+docker exec -it client_ukraine curl http://localhost:8080/request-image
+docker exec -it client_europe curl http://localhost:8080/request-image
+
+
+docker exec -it client_ukraine siege -c 200 -t30S http://localhost:8080/request-image
+docker exec -it client_europe siege -c 200 -t30S http://localhost:8080/request-image
