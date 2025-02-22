@@ -1,10 +1,10 @@
 ## Project Overview
 
 This project is a simple CDN system for image delivery, using:
-- BIND9 DNS Server to route clients from different regions to different load balancers.
-- NGINX Load Balancers (load_balancer_1 and load_balancer_2) to distribute requests across backend nodes.
-- Go-based backend servers (node1, node2, node3, node4) to serve cached images.
-- Go-based client applications that simulate requests from Ukraine (client_ukraine) and Europe (client_europe).
+- bind9 DNS Server to route clients from different regions to different load balancers.
+- NGINX load balancers (`load_balancer_1` and `load_balancer_2`) to distribute requests across backend nodes.
+- Go-based backend servers (`node1, node2, node3, node4`) to serve cached images.
+- Go-based client applications that simulate requests from Ukraine (`client_ukraine`) and Europe (`client_europe`).
 - Load testing with Siege to compare different balancing strategies.
 
 
@@ -55,7 +55,9 @@ Expected Output:
 Request to 192.168.97.7 successful: 200 OK
 ```
 
-4. **Siege load testing**
+---
+
+**Siege load testing**
 
 To evaluate each load balancing strategy NGINX `upstream` configuration was modified accordingly.
 
@@ -66,7 +68,8 @@ To evaluate each load balancing strategy NGINX `upstream` configuration was modi
 | IP Hash (ip_hash;)     | 239544      | 9.59                 | 0.33             |
 | Least Connections (least_conn;)| 333118      | 13.34                | 0.45             |
 
-Summary:
-- Least Connections is the most efficient strategy for high-load scenarios, ensuring optimal resource usage.
-- Round-Robin and Weighted strategies are stable and predictable but may not account for uneven traffic spikes.
-- IP Hash is less efficient due to potential imbalance but may be useful when session persistence is required.
+**Summary:**
+
+  - Least Connections is the most efficient strategy for high-load scenarios, ensuring optimal resource usage.
+  - Round-Robin and Weighted strategies are stable and predictable but may not account for uneven traffic spikes.
+  - IP Hash is less efficient due to potential imbalance but may be useful when session persistence is required.
