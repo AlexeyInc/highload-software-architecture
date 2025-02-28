@@ -1,1 +1,3 @@
 *.vscode
+
+# hw14-geo-load-balancer/geoip/*.mmdb
