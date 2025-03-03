@@ -4,6 +4,7 @@ services:
   nginx:
     image: anroe/nginx-geoip2
     container_name: load_balancer
+    platform: linux/amd64
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
       - ./geoip:/etc/nginx/geoip
@@ -15,7 +16,6 @@ services:
       - server3
       - server4
       - backup_server
-    restart: always
 
   server1:
     image: nginxdemos/hello
