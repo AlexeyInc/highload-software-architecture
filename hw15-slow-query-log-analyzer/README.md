@@ -1,6 +1,6 @@
 ## Project Overview
 
-This project sets up a MySQL database with slow query logging, ELK (Elasticsearch, Logstash, Kibana), and Graylog to compare logging performance under different MySQL `long_query_time` values. The application is Go based API with endpoints for simulating slow queries and searching users.
+This project sets up a MySQL database with slow query logging, ELK stack and Graylog to compare logging performance under different MySQL `long_query_time` values. The application is Go based API with endpoints for simulating slow queries and searching users.
 
 ## How to use
 
@@ -40,7 +40,7 @@ ____
 
 ## Running performance tests
 
-Changing `long_query_time` and Run Siege
+Changing `long_query_time` and run siege
 
 **Test 1**
 
@@ -73,7 +73,7 @@ Results:
 ```
 **Test 2**
 
-`long_query_time = 0.3` (Log Queries > 300ms)
+`long_query_time = 0.3` (Log queries > 300ms)
 
 `docker exec -it mysql-db mysql -uroot -prootpassword -e "SET GLOBAL long_query_time = 0.3;"`
 
@@ -88,7 +88,7 @@ Results:
 
 **Test 3**
 
-`long_query_time = 2` (Log Only Queries > 2 sec)
+`long_query_time = 2` (Log only queries > 2 sec)
 
 `docker exec -it mysql-db mysql -uroot -prootpassword -e "SET GLOBAL long_query_time = 2;"`
 
