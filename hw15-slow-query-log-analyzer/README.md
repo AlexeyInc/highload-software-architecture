@@ -6,7 +6,8 @@ This project sets up a MySQL database with slow query logging, ELK (Elasticsearc
 
 **Database Initialization**
 
-During application startup, the system automatically inserts 1 million records into the MySQL database. This ensures that the /search endpoint has data available for queries and performance testing.
+*During application startup, the system automatically inserts 1 million records into the MySQL database. This ensures that the `/search` endpoint has data available for queries and performance testing.*
+
 
 1. To start all services (MySQL, the Go app, ELK, Graylog, Filebeat, and Logstash), run: 
     `docker-compose up --build`
@@ -26,11 +27,13 @@ Make test reqeust multiple times: `curl http://localhost:8080/slow?timeout=1` an
 
 - Kibana (`http://localhost:5601`): Navigate to "Discover", search for logs in the `mysql-slow-logs-*` index.
 
-screenshot1
+![Screenshot 2025-03-04 at 12 46 45](https://github.com/user-attachments/assets/ec3e2f92-a8e7-4e7d-a7d8-98ae0f144c03)
 
-- Graylog (`http://localhost:9000`): Log in (default `admin:admin`) and go to search page
 
-screenshot2
+- Graylog (`http://localhost:9000`): Log in (default `admin:admin`) and go to search page.
+
+![Screenshot 2025-03-04 at 12 59 55](https://github.com/user-attachments/assets/139efdcc-1f6a-4125-b217-95ee033c54be)
+
 
 ## Running performance tests
 
@@ -39,17 +42,20 @@ Changing `long_query_time` and Run Siege
 **Test 1**
 
 `long_query_time = 0` (Log Everything)
-    ```
+```
     docker exec -it mysql-db mysql -uroot -prootpassword -e "SET GLOBAL long_query_time = 0;"
+
     docker exec -it mysql-db mysql -uroot -prootpassword -e "SHOW VARIABLES LIKE 'long_query_time';"
-    ```
+```
 
 Expected output:
+```
     +-----------------+----------+
     | Variable_name   | Value    |
     +-----------------+----------+
     | long_query_time | 0.000000 |
     +-----------------+----------+
+```
 
 Run search query stress test:
     `siege -c30 -t30S "http://localhost:8080/search?name=User50"`
