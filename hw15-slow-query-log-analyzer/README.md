@@ -1,6 +1,6 @@
 ## Project Overview
 
-This project sets up a MySQL database with slow query logging, ELK (Elasticsearch, Logstash, Kibana), and Graylog to compare logging performance under different MySQL long_query_time values. The application is Go based API with endpoints for simulating slow queries and searching users.
+This project sets up a MySQL database with slow query logging, ELK (Elasticsearch, Logstash, Kibana), and Graylog to compare logging performance under different MySQL `long_query_time values. The application is Go based API with endpoints for simulating slow queries and searching users.
 
 ## How to use
 
@@ -9,10 +9,11 @@ This project sets up a MySQL database with slow query logging, ELK (Elasticsearc
 *During application startup, the system automatically inserts 1 million records into the MySQL database. This ensures that the `/search` endpoint has data available for queries and performance testing.*
 
 
-1. To start all services (MySQL, the Go app, ELK, Graylog, Filebeat, and Logstash), run: 
-    `docker-compose up --build`
+**1. To start all services (mysql, Go app, ELK, Graylog, Filebeat and Logstash), run:**
 
-2. After starting the services, configure Graylog to receive MySQL slow query logs
+`docker-compose up --build`
+
+**2. After starting the services, configure Graylog to receive MySQL slow query logs**
 ```
 docker cp ./scripts/graylog_setup_beats.sh graylog:/tmp/
 
@@ -21,19 +22,20 @@ docker exec -it graylog bash -c "bash /tmp/graylog_setup_beats.sh"
 Expected Output:
 `{"id":"your_id"}Beats Input has been successfully created!`
 
-4.  Verify logs in Kibana & Graylog
+**3.  Verify logs in Kibana & Graylog**
 
 Make test reqeust multiple times: `curl http://localhost:8080/slow?timeout=1` and check logs:
 
-- Kibana (`http://localhost:5601`): Navigate to "Discover", search for logs in the `mysql-slow-logs-*` index.
+Kibana (`http://localhost:5601`): Navigate to "Discover", search for logs in the `mysql-slow-logs-*` index.
 
 ![Screenshot 2025-03-04 at 12 46 45](https://github.com/user-attachments/assets/ec3e2f92-a8e7-4e7d-a7d8-98ae0f144c03)
 
-
-- Graylog (`http://localhost:9000`): Log in (default `admin:admin`) and go to search page.
+</br>
+Graylog (`http://localhost:9000`): Log in (default `admin:admin`) and go to search page.
 
 ![Screenshot 2025-03-04 at 12 59 55](https://github.com/user-attachments/assets/139efdcc-1f6a-4125-b217-95ee033c54be)
 
+____
 
 ## Running performance tests
 
