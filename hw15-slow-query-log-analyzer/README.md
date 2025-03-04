@@ -1,6 +1,6 @@
 ## Project Overview
 
-This project sets up a MySQL database with slow query logging, ELK (Elasticsearch, Logstash, Kibana), and Graylog to compare logging performance under different MySQL `long_query_time values. The application is Go based API with endpoints for simulating slow queries and searching users.
+This project sets up a MySQL database with slow query logging, ELK (Elasticsearch, Logstash, Kibana), and Graylog to compare logging performance under different MySQL `long_query_time` values. The application is Go based API with endpoints for simulating slow queries and searching users.
 
 ## How to use
 
@@ -31,6 +31,7 @@ Kibana (`http://localhost:5601`): Navigate to "Discover", search for logs in the
 ![Screenshot 2025-03-04 at 12 46 45](https://github.com/user-attachments/assets/ec3e2f92-a8e7-4e7d-a7d8-98ae0f144c03)
 
 </br>
+
 Graylog (`http://localhost:9000`): Log in (default `admin:admin`) and go to search page.
 
 ![Screenshot 2025-03-04 at 12 59 55](https://github.com/user-attachments/assets/139efdcc-1f6a-4125-b217-95ee033c54be)
