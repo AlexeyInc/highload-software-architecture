@@ -1,0 +1,211 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: mysql-db
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: testdb
+      MYSQL_USER: testuser
+      MYSQL_PASSWORD: testpassword
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - mysql_logs:/var/log/
+      - ./config/mysql.cnf:/etc/mysql/conf.d/my.cnf
+    networks:
+      - app
+
+  graylog:
+    image: graylog/graylog:6.1.6
+    container_name: graylog
+    restart: unless-stopped
+    depends_on:
+      - mongo_graylog
+      - elasticsearch_graylog
+    ports:
+      - 9000:9000
+      - 1514:1514
+      - 1514:1514/udp
+      - 12201:12201
+      - 12201:12201/udp
+      - 5044:5044
+      - 5044:5044/udp
+      - 5045:5045
+      - 5045:5045/udp
+    volumes:
+      - data_graylog:/usr/share/graylog/data
+      - ./config/graylog.conf:/usr/share/graylog/data/config/graylog.conf
+    networks:
+      - graylog
+
+  filebeat_graylog:
+    image: docker.elastic.co/beats/filebeat:7.10.2
+    platform: linux/x86_64
+    user: root
+    container_name: filebeat-graylog
+    restart: unless-stopped
+    configs:
+      - source: filebeat_graylog_config
+        target: /usr/share/filebeat/filebeat.yml
+    volumes:
+      - mysql_logs:/var/log/mysql
+    depends_on:
+      - graylog
+    command:
+      [
+        "filebeat",
+        "-e",
+        "--strict.perms=false",
+        "-c",
+        "/usr/share/filebeat/filebeat.yml",
+      ]
+    networks:
+      - graylog
+
+  mongo_graylog:
+    image: mongo:6.0.5
+    container_name: mongo-graylog
+    restart: unless-stopped
+    volumes:
+      - mongo_data_graylog:/data/db
+    networks:
+      - graylog
+
+  elasticsearch_graylog:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.27
+    container_name: elasticsearch-graylog
+    environment:
+      - discovery.type=single-node
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+      - xpack.security.enabled=false
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    volumes:
+      - es_data_graylog2:/usr/share/opensearch/data
+    ports:
+      - 9200:9200 # REST API
+      - 9600:9600
+    networks:
+      - graylog
+
+  logstash_elk:
+    image: docker.elastic.co/logstash/logstash:7.10.2
+    platform: linux/x86_64
+    container_name: logstash-elk
+    command: ["logstash", "-f", "/usr/share/logstash/pipeline/logstash.conf"]
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch-elk:9200
+    restart: unless-stopped
+    volumes:
+      - ./config/logstash.conf:/usr/share/logstash/pipeline/logstash.conf
+    depends_on:
+      - elasticsearch_elk
+    ports:
+      - "5046:5044"
+      - "9601:9600"
+    networks:
+      - elk
+
+  elasticsearch_elk:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.27
+    container_name: elasticsearch-elk
+    environment:
+      - discovery.type=single-node
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+      - xpack.security.enabled=false
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    volumes:
+      - es_data_elk:/usr/share/opensearch/data
+    ports:
+      - 9202:9200
+      - 9602:9600
+    networks:
+      - elk
+
+  kibana_elk:
+    image: docker.elastic.co/kibana/kibana:7.10.2
+    platform: linux/x86_64
+    container_name: kibana-elk
+    restart: unless-stopped
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch-elk:9200
+    depends_on:
+      - elasticsearch_elk
+    ports:
+      - "5601:5601"
+    networks:
+      - elk
+
+  filebeat_elk:
+    image: docker.elastic.co/beats/filebeat:7.10.2
+    platform: linux/x86_64
+    user: root
+    container_name: filebeat-elk
+    restart: unless-stopped
+    configs:
+      - source: filebeat_elk_config
+        target: /usr/share/filebeat/filebeat.yml
+    volumes:
+      - mysql_logs:/var/log/mysql
+    depends_on:
+      - logstash_elk
+    command:
+      [
+        "filebeat",
+        "-e",
+        "--strict.perms=false",
+        "-c",
+        "/usr/share/filebeat/filebeat.yml",
+      ]
+    networks:
+      - elk
+
+  app:
+    build: ./app
+    container_name: app
+    restart: unless-stopped
+    depends_on:
+      - mysql
+    ports:
+      - "8080:8080"
+    environment:
+      DATABASE_HOST: mysql-db
+      DATABASE_NAME: testdb
+      DATABASE_USER: testuser
+      DATABASE_PASSWORD: testpassword
+    networks:
+      - app
+
+configs:
+  filebeat_graylog_config:
+    file: $PWD/config/filebeat/filebeat-graylog.yml
+  filebeat_elk_config:
+    file: $PWD/config/filebeat/filebeat-elk.yml
+
+networks:
+  graylog:
+    driver: bridge
+  elk:
+    driver: bridge
+  app:
+    driver: bridge
+
+volumes:
+  mysql_logs:
+  mysql_data:
+  mongo_data_graylog:
+  es_data_graylog2:
+  es_data_elk:
+  data_graylog:
