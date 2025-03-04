@@ -22,16 +22,17 @@ services:
       - "8081:80"
 
   influxdb:
-    image: influxdb:latest
+    image: influxdb:1.11-alpine
     platform: linux/amd64
-    container_name: influxdb
-    env_file: configuration.env
     ports:
-      - "8086:8086"
+      - '8086:8086'
+    environment:
+      - INFLUXDB_DB=telegraf
+      - INFLUXDB_ADMIN_USER=admin
+      - INFLUXDB_ADMIN_PASSWORD=admin
     volumes:
       - ./:/imports
-      - influxdb_data:/var/lib/influxdb
-      
+      - influxdb_data:/var/lib/influxdb 
 
   telegraf:
     image: telegraf:latest
@@ -46,7 +47,12 @@ services:
     container_name: grafana
     ports:
       - "3000:3000"
-    env_file: configuration.env
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin    
+      - GF_SECURITY_ADMIN_PASSWORD=admin 
+      - GF_AUTH_ANONYMOUS_ENABLED=true   
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin  
+      - GF_USERS_ALLOW_SIGN_UP=true
     volumes:
       - grafana_data:/var/lib/grafana
     depends_on:
