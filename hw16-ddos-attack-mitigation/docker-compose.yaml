@@ -1,0 +1,57 @@
+services:
+  attacker:
+    image: utkudarilmaz/hping3
+    platform: linux/amd64
+    container_name: attacker
+    entrypoint: "/bin/sh -c 'sleep infinity'"
+
+  nginx_insecure:
+    image: nginx:latest
+    container_name: nginx_insecure
+    volumes:
+      - ./nginx_insecure.conf:/etc/nginx/nginx.conf
+    ports:
+      - "8080:80"
+
+  nginx_secure:
+    image: nginx:latest
+    container_name: nginx_secure
+    volumes:
+      - ./nginx_secure.conf:/etc/nginx/nginx.conf
+    ports:
+      - "8081:80"
+
+  influxdb:
+    image: influxdb:latest
+    platform: linux/amd64
+    container_name: influxdb
+    env_file: configuration.env
+    ports:
+      - "8086:8086"
+    volumes:
+      - ./:/imports
+      - influxdb_data:/var/lib/influxdb
+      
+
+  telegraf:
+    image: telegraf:latest
+    container_name: telegraf
+    volumes:
+      - ./telegraf.conf:/etc/telegraf/telegraf.conf
+    depends_on:
+      - influxdb
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    env_file: configuration.env
+    volumes:
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - influxdb
+
+volumes:
+  influxdb_data:
+  grafana_data:
