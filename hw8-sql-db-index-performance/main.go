@@ -67,10 +67,10 @@ func insertUsersHandler(w http.ResponseWriter, r *http.Request) {
 	)
 	start := time.Now()
 
-	for i := 0; i < total/batchSize; i++ {
+	for i := range total / batchSize {
 		queryBuilder := strings.Builder{}
 		queryBuilder.WriteString("INSERT INTO users (name, email, date_of_birth) VALUES ")
-		values := make([]interface{}, 0, batchSize*3)
+		values := make([]any, 0, batchSize*3)
 		for j := 0; j < batchSize; j++ {
 			name := fmt.Sprintf("User%d", rand.Intn(total))
 			email := fmt.Sprintf("user%d@example.com", rand.Intn(total))
@@ -169,12 +169,12 @@ func manageIndexHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, fmt.Sprintf("Failed to create %s index: %v", indexType, err), http.StatusInternalServerError)
 			return
 		}
-		w.Write([]byte(fmt.Sprintf("%s index created successfully.", indexType)))
+		w.Write(fmt.Appendf(nil, "%s index created successfully.", indexType))
 	case "delete":
 		if _, err := db.Exec(fmt.Sprintf("DROP INDEX %s ON users;", indexName)); err != nil {
 			http.Error(w, fmt.Sprintf("Failed to delete %s index: %v", indexType, err), http.StatusInternalServerError)
 			return
 		}
-		w.Write([]byte(fmt.Sprintf("%s index deleted successfully.", indexType)))
+		w.Write(fmt.Appendf(nil, "%s index deleted successfully.", indexType))
 	}
 }
