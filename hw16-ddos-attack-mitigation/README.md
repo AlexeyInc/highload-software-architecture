@@ -7,6 +7,40 @@ This project simulates & mitigates real-world DDoS attacks (UDP Flood, ICMP floo
 - Defender Containers (`nginx_insecure` & `nginx_secure`) -> Test NGINX protection strategies.
 - Monitoring (TIG stack) -> Captures attack impact.
 
+
+**Secure server configuration and its protections**
+
+1. Request rate limiting (mitigates HTTP flood/Brute force attacks)
+
+`imit_req_zone $binary_remote_addr zone=one:10m rate=30r/m;`
+
+2. Connection limiting (mitigates high volume attacks)
+
+`limit_conn_zone $binary_remote_addr zone=addr:10m;`
+
+3. Client timeout configuration (mitigates slowloris and slow HTTP attacks)
+
+```
+    client_body_timeout 5s;
+    client_header_timeout 5s;
+    keepalive_timeout 5s;
+```
+
+4. (optional) Blocking specific exploit-prone URLs 
+
+```
+location /foo.php {
+    deny all;
+}
+```
+
+5. (optional) Blocking malicious user agents 
+
+```
+if ($http_user_agent ~* test|python) {
+    return 403;
+}
+```
 ____
 
 ## How to Use
@@ -17,7 +51,7 @@ ____
 docker-compose up --build -d
 ```
 
-### Run attacks inside docker-compose
+### Run attacks inside docker
 
 ```
     docker exec -it attacker sh
@@ -36,14 +70,14 @@ We see the same CPU switches & usage spikes for both `nginx_insecure` and `nginx
 
 ![CPU usage](./images/image-2.png) ![Context switches](./images/image-1.png)
 
-So NGINX does not mitigate UDP flood attacks, here is why:
-    - NGINX mainly handles TCP-based HTTP/S requests.
-    - UDP Flood attacks target network resources rather than the web server.
+So, NGINX does not mitigate UDP flood attacks, here is why:
+- NGINX mainly handles TCP-based HTTP/S requests.
+- UDP Flood attacks target network resources rather than the web server.
 
 To protect against UDP flood attacks we can use:
-    - Firewall rules (iptables, UFW)
-    - Cloud-based DDoS protection
-    - Kernel tuning to limit UDP buffer overflow
+- Firewall rules (iptables, UFW)
+- Cloud-based DDoS protection
+- Kernel tuning to limit UDP buffer overflow
 
 **2. ICMP (Ping) flood**
 
@@ -102,7 +136,7 @@ Hold connections open as long as possible, preventing legitimate users from conn
 
 Run `pip3 install slowloris` inside continer. 
 
-Wrap slowloris in a loop to control request rate and keep opening sockets at a rate close to 200 per second.
+Wrap `slowloris` in a loop to control request rate and keep opening sockets at a rate close to 200 per second.
 
 ```
 while true; do slowloris nginx_insecure -s 1000 -p 80 --sleeptime 50; sleep 0.005; done
