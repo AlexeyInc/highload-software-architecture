@@ -31,6 +31,7 @@ ___
 #### #Homepage
 
 **Sources:** Simultaneous user surges, bot traffic, push notifications
+
 **Solution:**
 - CDN optimization: Cache most homepage components (except live updates) to reduce backend load.  
 - Push notification load balancing: Spread push notifications in batches over time instead of sending them all at once.  
@@ -40,6 +41,7 @@ ___
 #### #Live match pages
 
 **Sources:** High concurrent access, live updates API calls, bot scraping, DDoS threats
+
 **Solution:**
 - Event-Based caching: Cache live match updates for a few seconds before refreshing to reduce api pressure.  
 - WebSockets instead of polling: Use websockets instead of frequent api polling for live updates to decrease server load.  
@@ -49,6 +51,7 @@ ___
 #### #News articles
 
 **Sources:** Social media spikes, bot crawling, push notifications
+
 **Solution:**
 - Static pre-rendering: Serve popular articles as pre-rendered static pages to avoid repeated backend rendering.  
 - Load-Sensitive push distribution: Send notifications in a staggered manner instead of all at once.  
@@ -57,6 +60,7 @@ ___
 #### #Video & multimedia pages
 
 **Sources:** High concurrent streaming, CDN inefficiencies, external embedding
+
 **Solution:**
 - Adaptive streaming: Use hls/dash streaming to serve different quality levels based on user bandwidth.  
 - CDN optimization: Use multiple cdn providers and distribute video caching to prevent overload.  
@@ -66,6 +70,7 @@ ___
 #### #User interaction pages
 
 **Sources:** Mass comments, spambots, API spikes
+
 **Solution:**
 - Comment caching: Cache new comments for a few seconds before writing to the database in bulk.  
 - Spambot detection: Use ai-based spam filtering to block excessive or repetitive comments.  
@@ -73,7 +78,7 @@ ___
 
 ___
 
-### Generic system-Wide approaches
+### Generic system-wide approaches
 
 To further enhance resilience against peak loading:
 1.	Predictive scaling: Analyze historical traffic data to scale servers just before expected spikes.  
