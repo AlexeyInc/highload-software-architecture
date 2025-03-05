@@ -28,25 +28,25 @@ ___
 
 ## Solutions to peak loadings for each page type
 
-**Homepage**
+#### #Homepage
 
 **Sources:** Simultaneous user surges, bot traffic, push notifications
 **Solution:**
-- CDN Optimization: Cache most homepage components (except live updates) to reduce backend load.
-- Push notification load balancing: Spread push notifications in batches over time instead of sending them all at once.
-- Rate Limiting Bots: Implement stricter rate limits for non-logged-in users and suspected bots.
-- Edge Caching & Prefetching: Use a CDN with edge caching to serve static content efficiently.
+- CDN optimization: Cache most homepage components (except live updates) to reduce backend load.  
+- Push notification load balancing: Spread push notifications in batches over time instead of sending them all at once.  
+- Rate limiting bots: Implement stricter rate limits for non-logged-in users and suspected bots.  
+- Edge caching & prefetching: Use a cdn with edge caching to serve static content efficiently.  
 
-**Live Match Pages**
+#### #Live match pages
 
 **Sources:** High concurrent access, live updates API calls, bot scraping, DDoS threats
 **Solution:**
-- Event-Based Caching: Cache live match updates for a few seconds before refreshing to reduce API pressure.
-- WebSockets Instead of Polling: Use WebSockets instead of frequent API polling for live updates to decrease server load.
-- Bot & Attack Prevention: Implement CAPTCHA for unknown users, analyze suspicious traffic patterns, and block suspected bots early.
-- Elastic Scaling: Auto-scale backend services only during predicted match times.
+- Event-Based caching: Cache live match updates for a few seconds before refreshing to reduce api pressure.  
+- WebSockets instead of polling: Use websockets instead of frequent api polling for live updates to decrease server load.  
+- Bot & attack prevention: Implement captcha for unknown users, analyze suspicious traffic patterns, and block suspected bots early.  
+- Elastic scaling: Auto-scale backend services only during predicted match times.  
 
-**News Articles**
+#### #News articles
 
 **Sources:** Social media spikes, bot crawling, push notifications
 **Solution:**
@@ -54,16 +54,16 @@ ___
 - Load-Sensitive push distribution: Send notifications in a staggered manner instead of all at once.  
 - CDN cache invalidation strategy: Keep articles cached longer but invalidate them smartly when updated.  
 
-**Video & Multimedia Pages**
+#### #Video & multimedia pages
 
 **Sources:** High concurrent streaming, CDN inefficiencies, external embedding
 **Solution:**
 - Adaptive streaming: Use hls/dash streaming to serve different quality levels based on user bandwidth.  
 - CDN optimization: Use multiple cdn providers and distribute video caching to prevent overload.  
-- Referrer restriction: Block external embedding of videos from unknown sources to prevent uncontrolled spikes.  
+- Referrer restriction: Try to block as early as possible by block external embedding of videos from unknown sources to prevent uncontrolled spikes.  
 
 
-**User Interaction Pages**
+#### #User interaction pages
 
 **Sources:** Mass comments, spambots, API spikes
 **Solution:**
@@ -80,8 +80,3 @@ To further enhance resilience against peak loading:
 2.	Serverless functions: Offload lightweight tasks (e.g., real-time stats updates) to serverless architectures.  
 3.	Efficient database indexing: Optimize queries to ensure the database handles read-heavy traffic efficiently.  
 4.	Load balancing strategies: Implement weighted round-robin or least-connection load balancing to distribute traffic evenly.
-
-
-
-_______
-
