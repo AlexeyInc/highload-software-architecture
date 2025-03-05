@@ -8,7 +8,7 @@ This project simulates & mitigates real-world DDoS attacks (UDP Flood, ICMP floo
 - Monitoring (TIG stack) -> Captures attack impact.
 
 
-**Secure server configuration and its protections**
+**Secure server configuration and its protections:**
 
 1. Request rate limiting (mitigates HTTP flood/Brute force attacks)
 
