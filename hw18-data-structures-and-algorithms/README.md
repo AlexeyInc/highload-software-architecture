@@ -4,7 +4,7 @@ This project implements and analyzes the **Counting sort** algorithm and a **Bal
 
 ____
 
-### Observations from the Logarithmic Trendline:
+### Observations from operations performance trends (logarithmic trendline):
 
 
 ![alt text](./images/image2.png)
