@@ -1,13 +1,13 @@
 ## Project Overview
 
-This project implements and analyzes the **Counting sort** algorithm and a **balanced AVL Tree**, focusing on their efficiency and performance trends. The **AVL Tree** supports insert, search, and delete operations, while **Counting sort** is evaluated under varying dataset sizes (n) and value ranges (k)
+This project implements and analyzes the **Counting sort** algorithm and a **Balanced AVL Tree**, focusing on their efficiency and performance trends. **AVL Tree** supports `insert`, `search`, and `delete` operations, while **Counting sort** is evaluated under varying dataset `sizes (n)` and value `ranges (k)`. 
 
 ____
 
 ### Observations from the Logarithmic Trendline:
 
 
-![alt text](./images/image1.png)
+![alt text](./images/image2.png)
 
 
 The logarithmic trendline confirms that **search**, **insert**, and **delete** operations in the AVL tree are performing close to `O(log(n))` complexity.
