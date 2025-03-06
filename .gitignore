@@ -1,3 +1,7 @@
 *.vscode
 
-# hw14-geo-load-balancer/geoip/*.mmdb
+./hw14-geo-load-balancer/geoip/*.mmdb
+
+hw19-db-replication/master/data/*
+hw19-db-replication/slave/data/*
+hw19-db-replication/slave2/data/*
