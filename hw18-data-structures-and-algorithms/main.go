@@ -6,16 +6,45 @@ import (
 	"time"
 
 	"hw18-data-structures-and-algorithms/avltree"
+	"hw18-data-structures-and-algorithms/countingsort"
 )
 
 func main() {
-	rand.Seed(time.Now().UnixNano())
+	// #AVLTree
 	datasets := generateDatasets()
 	benchmarkInsert(datasets)
 	benchmarkSearch(datasets)
 	benchmarkDelete(datasets)
+
+	// #CountingSort
+	sizes := []int{100, 1000, 10000}
+	ranges := []int{10, 50, 100, 500, 1000, 5000, 10000, 50000, 100000, 500000, 1000000, 5000000} // Increasing range sizes
+
+	fmt.Println("DatasetSize, Range, ExecutionTime(us)")
+	for _, size := range sizes {
+		for _, r := range ranges {
+			elapsed := benchmarkCountingSort(size, 0, r)
+			fmt.Printf("%d, %d, %d\n", size, r, elapsed)
+		}
+	}
 }
 
+func generateDataset(size int, minVal int, maxVal int) []int {
+	arr := make([]int, size)
+	for i := range arr {
+		arr[i] = rand.Intn(maxVal-minVal+1) + minVal
+	}
+	return arr
+}
+
+func benchmarkCountingSort(size int, minVal int, maxVal int) int64 {
+	arr := generateDataset(size, minVal, maxVal)
+	start := time.Now()
+	countingsort.CountingSort(arr, maxVal+1)
+	return time.Since(start).Microseconds()
+}
+
+// avltree benchmarks
 func generateDatasets() [][]int {
 	datasets := make([][]int, 100)
 	for i := range 100 {
