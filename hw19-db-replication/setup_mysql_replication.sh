@@ -3,6 +3,7 @@
 docker-compose down -v
 rm -rf ./master/data/*
 rm -rf ./slave/data/*
+rm -rf ./slave2/data/*
 docker-compose build
 docker-compose up -d
 
@@ -53,7 +54,7 @@ priv_stmt='CREATE USER "mydb_slave_user"@"%" IDENTIFIED BY "mydb_slave_pwd";
 
 docker exec mysql_master sh -c "export MYSQL_PWD=111; mysql -u root -e '$priv_stmt'"
 
-# --- mysql_slave2 configuration ---
+# --- mysql_slave configuration ---
 
 until docker-compose exec mysql_slave sh -c 'export MYSQL_PWD=111; mysql -u root -e ";"'
 do

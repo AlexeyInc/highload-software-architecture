@@ -8,16 +8,16 @@ DB_NAME="mydb"
 trap "echo 'Stopping script...'; exit 0" SIGTERM
 
 # Initialize table only once
-docker exec mysql_master sh -c "export MYSQL_PWD=$MYSQL_ROOT_PWD; mysql -u root $DB_NAME -e 'DROP TABLE IF EXISTS code; CREATE TABLE code(code INT);'"
+docker exec mysql_master sh -c "export MYSQL_PWD=$MYSQL_ROOT_PWD; mysql -u root $DB_NAME -e 'DROP TABLE IF EXISTS code; CREATE TABLE code(valueInt INT, valueNullString TEXT NULL, valueString TEXT, valueInt2 INT);'"
 
 echo "Starting periodic inserts and verification..."
 counter=1
 
 while true; do
     # Insert new data into the master
-    docker exec mysql_master sh -c "export MYSQL_PWD=$MYSQL_ROOT_PWD; mysql -u root $DB_NAME -e 'INSERT INTO code VALUES ($counter);'"
+    docker exec mysql_master sh -c "export MYSQL_PWD=$MYSQL_ROOT_PWD; mysql -u root $DB_NAME -e \"INSERT INTO code (valueInt, valueNullString, valueString, valueInt2) VALUES ($counter, NULL, 'Text_$counter', $counter);\""
 
-    echo "Inserted $counter into mysql_master.code"
+    echo "Inserted ($counter, NULL, 'Text_$counter') into mysql_master.code"
 
     # Wait a bit for replication
     sleep 1

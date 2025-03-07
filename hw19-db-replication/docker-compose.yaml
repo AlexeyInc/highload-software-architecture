@@ -29,7 +29,7 @@ services:
     networks:
       - overlay
 
-  mysql_slave2: 
+  mysql_slave2:
     image: mysql:8.0
     env_file:
       - ./slave2/mysql_slave2.env
