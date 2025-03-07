@@ -138,7 +138,5 @@ ___
 ### Final conclusions
 
 1. Stopping a slave (`mysql_slave`) does not break replication.
-2. Dropping columns from the rightmost side does not break replication, but dropping from the left causes data shifts that break replication.
-3. Column deletions cause leftward shifts in mysql replicas.
-
-    3.1. If the shifted data type does not match the original expectation in the binlog, replication fails. 
+2. Dropping columns from the rightmost side does not break replication, but dropping from the left causes data shifts that COULD break replication.
+3. Column deletions cause leftward shifts in replicas. If the shifted data type does not match the original expectation in the binlog, replication fails. 
