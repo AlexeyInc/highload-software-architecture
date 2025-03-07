@@ -35,7 +35,6 @@ Restart the slave:
 
 `docker start mysql_slave`
 
-![alt text](./images/image.png)
 
 Check its replication `mysql_slave` status:
 
@@ -50,17 +49,24 @@ Slave_SQL_Running: Yes
 `Seconds_Behind_Master: 0`
 ```
 so replication resumed successfully.
- 
+
+
+Expected output from running `./write_and_verify.sh` script after stop and restart `mysql_slave` replica: 
+
+![alt text](./images/image.png)
+
 ___
 
 ### Running tests
 
-#### Test 1: Dropping columns from the right (Last to First)
+### Test 1: Dropping columns from the right (Last to First)
 
 **1. Drop the last column (`valueString`) on `mysql_slave`:**
 ```
 docker exec mysql_slave sh -c "export MYSQL_PWD=111; mysql -u root mydb -e 'ALTER TABLE code DROP COLUMN valueString;'"
 ```
+
+Replication not stops. Expected output from running `./write_and_verify.sh` script:
 
 ![alt text](./images/image-1.png)
 
@@ -85,9 +91,10 @@ docker exec mysql_slave sh -c "export MYSQL_PWD=111; mysql -u root mydb -e 'ALTE
 **Observation:**
 - Only `valueInt` remains in the table.
 - Replication still works fine, meaning column deletions from the rightmost side do not cause issues.
+
 *Cannot delete the last remaining column, as mysql requires at least one column in a table*
 
-#### Test 2: Dropping the first column (`valueInt`)
+### Test 2: Dropping the first column (`valueInt`)
 
 **1. Try dropping valueInt on mysql_slave:**
 ```
@@ -100,9 +107,10 @@ Replication stops immediately.
 ![alt text](./images/image-3.png)
 
 **Reason:** 
+
 Looks like binary log expects an `INT` in column 0, but after deletion, `valueNullString` shifts left and mysql cannot cast a `TEXT` column into `INT`.
 
-#### Test 3: Adding an extra integer column and deleting text columns
+### Test 3: Adding an extra integer column and deleting text columns
 
 **1. Modify the table schema on the master by adding an extra INT column (`valueInt2`):**
 ```
@@ -117,11 +125,13 @@ docker exec mysql_slave sh -c "export MYSQL_PWD=111; mysql -u root mydb -e 'ALTE
 Error encountered: `Column 2 of table 'mydb.code' cannot be converted from type 'blob' to type 'int', Error_code: MY-013146`
 
 **Reason:** 
+
 - Replication stops because `valueString` (which is `TEXT`) shifts left and tries to occupy an `INT` position (`valueInt2`).
 - Same error happens if we delete `valueString` first.
 
 **Additional insight:**
-In mysql InnoDB engine, `TEXT` data types are internally stored as `BLOB` columns, that's why we have `'blob' to type 'int'` conversion in error message.
+
+In MySQL InnoDB engine, `TEXT` data types are internally stored as `BLOB` columns, that's why we have `'blob' to type 'int'` conversion in error message.
 
 ___
 
@@ -130,4 +140,5 @@ ___
 1. Stopping a slave (`mysql_slave`) does not break replication.
 2. Dropping columns from the rightmost side does not break replication, but dropping from the left causes data shifts that break replication.
 3. Column deletions cause leftward shifts in mysql replicas.
+
     3.1. If the shifted data type does not match the original expectation in the binlog, replication fails. 
