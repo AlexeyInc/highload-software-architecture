@@ -5,7 +5,7 @@ Project demonstrates how column deletions affect replication and how MySQL handl
 
 ___
 
-### How to use
+## How to use
 
 **1. Setup and start the MySQL replication cluster**
 
@@ -57,9 +57,9 @@ Expected output from running `./write_and_verify.sh` script after stop and resta
 
 ___
 
-### Running tests
+## Running tests
 
-### Test 1: Dropping columns from the right (Last to First)
+### Test 1: Dropping columns from the right (from last to first)
 
 **1. Drop the last column (`valueString`) on `mysql_slave`:**
 ```
