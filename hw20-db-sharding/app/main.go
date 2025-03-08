@@ -19,7 +19,7 @@ var db *sql.DB
 
 const (
 	insertCount = 1000000
-	batchSize   = 100
+	batchSize   = 10
 )
 
 type Book struct {
@@ -43,7 +43,7 @@ func main() {
 	defer db.Close()
 
 	_, err = db.Exec(`CREATE TABLE IF NOT EXISTS books (
-		id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+		id BIGINT NOT NULL,
 		category_id INT NOT NULL,
 		author VARCHAR NOT NULL,
 		title VARCHAR NOT NULL,
@@ -109,7 +109,7 @@ func insertBooks(count int) error {
 	stmtTemplate := "INSERT INTO books (id, category_id, author, title, year) VALUES %s"
 
 	for i := range count {
-		categoryID := randomCategory()
+		categoryID := randomCategory() // Ensure it falls within shard criteria
 		valueStrings = append(valueStrings, fmt.Sprintf("($%d, $%d, $%d, $%d, $%d)", len(valueArgs)+1, len(valueArgs)+2, len(valueArgs)+3, len(valueArgs)+4, len(valueArgs)+5))
 		valueArgs = append(valueArgs, i, categoryID, randomAuthor(), fmt.Sprintf("Book %d", i), randomYear())
 
@@ -148,7 +148,16 @@ func join(elements []string, sep string) string {
 func readHandler(w http.ResponseWriter, r *http.Request) {
 	start := time.Now()
 
-	rows, err := db.Query("SELECT id, category_id, author, title, year FROM books ORDER BY RANDOM() LIMIT $1", batchSize)
+	var totalCount int
+	err := db.QueryRow("SELECT COUNT(*) FROM books").Scan(&totalCount)
+	if err != nil || totalCount == 0 {
+		http.Error(w, "Failed to count records", http.StatusInternalServerError)
+		return
+	}
+
+	offset := rand.Intn(totalCount - batchSize + 1)
+
+	rows, err := db.Query("SELECT id, category_id, author, title, year FROM books LIMIT $1 OFFSET $2", batchSize, offset)
 	if err != nil {
 		http.Error(w, "Failed to read records", http.StatusInternalServerError)
 		return

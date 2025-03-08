@@ -9,6 +9,14 @@ services:
       POSTGRES_DB: books_db
     ports:
       - "5432:5432"
+    deploy:
+      resources:
+        limits:
+          cpus: "4"
+          memory: "8G"
+        reservations:
+          cpus: "2"
+          memory: "4G"
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
@@ -22,6 +30,14 @@ services:
       POSTGRES_DB: books_1
     ports:
       - "5433:5432"
+    deploy:
+      resources:
+        limits:
+          cpus: "4"
+          memory: "8G"
+        reservations:
+          cpus: "2"
+          memory: "4G"
     volumes:
       - postgres_shard1_data:/var/lib/postgresql/data
 
@@ -35,6 +51,14 @@ services:
       POSTGRES_DB: books_2
     ports:
       - "5434:5432"
+    deploy:
+      resources:
+        limits:
+          cpus: "4"
+          memory: "8G"
+        reservations:
+          cpus: "2"
+          memory: "4G"
     volumes:
       - postgres_shard2_data:/var/lib/postgresql/data
 
