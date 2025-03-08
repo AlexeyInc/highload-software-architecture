@@ -8,6 +8,7 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/joho/godotenv"
@@ -17,8 +18,8 @@ import (
 var db *sql.DB
 
 const (
-	insertCount = 100000
-	batchSize   = 1000
+	insertCount = 1000000
+	batchSize   = 100
 )
 
 type Book struct {
@@ -66,8 +67,10 @@ func basicInsertHandler(w http.ResponseWriter, r *http.Request) {
 
 	_, err := db.Exec("TRUNCATE TABLE books RESTART IDENTITY;")
 	if err != nil {
-		http.Error(w, "Failed to truncate table", http.StatusInternalServerError)
-		return
+		if !strings.Contains(err.Error(), "is not a table") {
+			http.Error(w, "Failed to truncate table", http.StatusInternalServerError)
+			return
+		}
 	}
 
 	err = insertBooks(insertCount)
@@ -101,24 +104,23 @@ func insertBooks(count int) error {
 		return err
 	}
 
-	// Preparing a batch insert statement
 	valueStrings := make([]string, 0, 100)
-	valueArgs := make([]any, 0, 100*4) // 4 columns per record
-	stmtTemplate := "INSERT INTO books (category_id, author, title, year) VALUES %s"
+	valueArgs := make([]any, 0, 100*4)
+	stmtTemplate := "INSERT INTO books (id, category_id, author, title, year) VALUES %s"
 
 	for i := range count {
-		valueStrings = append(valueStrings, fmt.Sprintf("($%d, $%d, $%d, $%d)", len(valueArgs)+1, len(valueArgs)+2, len(valueArgs)+3, len(valueArgs)+4))
-		valueArgs = append(valueArgs, randomCategory(), randomAuthor(), fmt.Sprintf("Book %d", i), randomYear())
+		categoryID := randomCategory()
+		valueStrings = append(valueStrings, fmt.Sprintf("($%d, $%d, $%d, $%d, $%d)", len(valueArgs)+1, len(valueArgs)+2, len(valueArgs)+3, len(valueArgs)+4, len(valueArgs)+5))
+		valueArgs = append(valueArgs, i, categoryID, randomAuthor(), fmt.Sprintf("Book %d", i), randomYear())
 
-		// Execute batch insert every 100 records
 		if (i+1)%100 == 0 || i+1 == count {
 			stmt := fmt.Sprintf(stmtTemplate, join(valueStrings, ","))
 			_, err := tx.Exec(stmt, valueArgs...)
 			if err != nil {
 				return err
 			}
-			valueStrings = valueStrings[:0] // Reset slice
-			valueArgs = valueArgs[:0]       // Reset slice
+			valueStrings = valueStrings[:0]
+			valueArgs = valueArgs[:0]
 		}
 	}
 
@@ -185,6 +187,6 @@ func randomYear() int {
 }
 
 func randomCategory() int {
-	categories := []int{1, 2, 3}
+	categories := []int{1, 2, 3, 4}
 	return categories[rand.Intn(len(categories))]
 }
