@@ -1,6 +1,10 @@
 ## Project overview
 
-Project explores horizontal sharding strategies in PostgreSQL by comparing three approaches: no sharding, FDW (Foreign Data Wrapper), and Citus.  Go application inserts and reads 1 million book records, benchmarking performance across these methods. The FDW approach partitions data across `postgresql-b1` and `postgresql-b2` using foreign tables and a unified view, while Citus dynamically distributes data across `postgresql-b1` and `postgresql-b2` based on hash-based sharding. Performance tests using siege helped evaluate insert and read efficiency for each approach. The results provide insights into the trade-offs between simplicity (no sharding), FDW’s manual partitioning, and Citus’ automated scaling capabilities.
+Project explores horizontal sharding strategies in PostgreSQL by comparing three approaches: no sharding, FDW (Foreign Data Wrapper), and Citus.  Go application inserts and reads 1 million book records, benchmarking performance across these methods. The FDW approach partitions data across `postgresql-b1` and `postgresql-b2` using foreign tables and a unified view, while Citus dynamically distributes data across `postgresql-b1` and `postgresql-b2` based on hash-based sharding. 
+
+Performance tests using `siege` helped evaluate insert and read efficiency for each approach. The results provide insights into the trade-offs between simplicity (no sharding), FDW’s manual partitioning, and Citus’ automated scaling capabilities.
+
+___
 
 ## Configure sharding with FDW (Foreign Data Wrapper)
 
@@ -10,7 +14,7 @@ Project explores horizontal sharding strategies in PostgreSQL by comparing three
 
 Ensure you have run: `docker-compose.fdw.yaml`
 
-Create tables on worker nodes (postgresql-b1 and postgresql-b2) to store specific category_id values.
+Create tables on worker nodes (`postgresql-b1` and `postgresql-b2`) to store specific `category_id` values.
 
 On `postgresql-b1` (Shard 1)
 
@@ -203,8 +207,9 @@ Check all distributed tables: `SELECT * FROM citus_tables;`
 
 ## (Without sharding)
 
-The setup will be configured automatically when launching main.go, and all commands can be executed seamlessly.
+Setup will be configured automatically when launching `main.go`, all commands can be executed seamlessly.
  
+___
 
 ## Results
 
@@ -333,6 +338,6 @@ Shortest transaction:	        0.00 ms
 
 **Summary:**
 - Sharding overhead is expected, as all shards were on the same machine, limiting real-world benefits like parallelism and load distribution. 
-- Citus performance could improve with better coordinator-worker balance and worker-specific tuning.
+- Citus performance could improve with better coordinator-worker balance and worker-specific tuning (such as allocating more CPU, memory or increasing the number of shards).
 - FDW is best when you want manual shard control (e.g., category-based placement).
 - Citus is best for high-performance, large-scale sharding with automated balancing.
