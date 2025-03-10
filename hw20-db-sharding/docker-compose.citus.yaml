@@ -1,0 +1,68 @@
+services:
+  postgres:
+    image: citusdata/citus:11.3
+    container_name: postgresql-b
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: books_db
+    ports:
+      - "5432:5432"
+    deploy:
+      resources:
+        limits:
+          cpus: "8"
+          memory: "16G"
+        reservations:
+          cpus: "4"
+          memory: "8G"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  postgres_shard1:
+    image: citusdata/citus:11.3
+    container_name: postgresql-b1
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: books_db
+    ports:
+      - "5433:5432"
+    deploy:
+      resources:
+        limits:
+          cpus: "8"
+          memory: "16G"
+        reservations:
+          cpus: "4"
+          memory: "8G"
+    volumes:
+      - postgres_shard1_data:/var/lib/postgresql/data
+
+  postgres_shard2:
+    image: citusdata/citus:11.3
+    container_name: postgresql-b2
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: books_db
+    ports:
+      - "5434:5432"
+    deploy:
+      resources:
+        limits:
+          cpus: "8"
+          memory: "16G"
+        reservations:
+          cpus: "4"
+          memory: "8G"
+    volumes:
+      - postgres_shard2_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
+  postgres_shard1_data:
+  postgres_shard2_data:
