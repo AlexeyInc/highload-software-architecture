@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
@@ -23,7 +24,7 @@ const (
 )
 
 type Book struct {
-	ID         int    `json:"id"`
+	ID         string `json:"id"`
 	CategoryID int    `json:"category_id"`
 	Author     string `json:"author"`
 	Title      string `json:"title"`
@@ -43,12 +44,12 @@ func main() {
 	defer db.Close()
 
 	_, err = db.Exec(`CREATE TABLE IF NOT EXISTS books (
-		id BIGINT NOT NULL,
+		id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 		category_id INT NOT NULL,
 		author VARCHAR NOT NULL,
 		title VARCHAR NOT NULL,
 		year INT NOT NULL
-	);`)
+	);CREATE INDEX IF NOT EXISTS books_category_id_idx ON books(category_id);`)
 	if err != nil {
 		log.Fatalf("Failed to create table: %v", err)
 	}
@@ -111,7 +112,7 @@ func insertBooks(count int) error {
 	for i := range count {
 		categoryID := randomCategory() // Ensure it falls within shard criteria
 		valueStrings = append(valueStrings, fmt.Sprintf("($%d, $%d, $%d, $%d, $%d)", len(valueArgs)+1, len(valueArgs)+2, len(valueArgs)+3, len(valueArgs)+4, len(valueArgs)+5))
-		valueArgs = append(valueArgs, i, categoryID, randomAuthor(), fmt.Sprintf("Book %d", i), randomYear())
+		valueArgs = append(valueArgs, uuid.New(), categoryID, randomAuthor(), fmt.Sprintf("Book %d", i), randomYear())
 
 		if (i+1)%100 == 0 || i+1 == count {
 			stmt := fmt.Sprintf(stmtTemplate, join(valueStrings, ","))
@@ -155,9 +156,9 @@ func readHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	offset := rand.Intn(totalCount - batchSize + 1)
+	category := randomCategory()
 
-	rows, err := db.Query("SELECT id, category_id, author, title, year FROM books LIMIT $1 OFFSET $2", batchSize, offset)
+	rows, err := db.Query("SELECT id, category_id, author, title, year FROM books WHERE category_id = $1 LIMIT 1000", category)
 	if err != nil {
 		http.Error(w, "Failed to read records", http.StatusInternalServerError)
 		return
