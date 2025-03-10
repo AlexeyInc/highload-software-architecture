@@ -265,15 +265,15 @@ Inserted 1000000 records in 37.825414292s
 siege -c50 -t20S "http://localhost:8080/read"
 
 Lifting the server siege...
-Transactions:		      596    hits
+Transactions:		      896    hits
 Availability:		      100.00 %
 Elapsed time:		       20.36 secs
 Data transferred:	       68.10 MB
 Response time:		     1660.18 ms
-Transaction rate:	       29.27 trans/sec
+Transaction rate:	       47.27 trans/sec
 Throughput:		        3.34 MB/sec
-Concurrency:		       48.60
-Successful transactions:      596
+Concurrency:		       44.08
+Successful transactions:      896
 Failed transactions:	        0
 Longest transaction:	     6180.00 ms
 Shortest transaction:	      200.00 ms
