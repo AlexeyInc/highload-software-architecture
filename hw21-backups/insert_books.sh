@@ -1,6 +1,5 @@
 #!/bin/bash
 
-# Database connection details
 CONTAINER_NAME="postgresql-b"
 DB_USER="postgres"
 DB_NAME="books_db"
@@ -14,12 +13,10 @@ CREATE TABLE books (
 );
 "
 
-# Generate 10,000 random records and insert them
 echo "Generating 10,000 random records..."
 
 SQL_FILE="random_books.sql"
 
-# Generate SQL file
 cat > $SQL_FILE <<EOF
 INSERT INTO books (title, author, published_date) VALUES
 EOF
@@ -37,10 +34,8 @@ do
     fi
 done
 
-# Execute the SQL file inside PostgreSQL
 docker exec -i $CONTAINER_NAME psql -U $DB_USER -d $DB_NAME < $SQL_FILE
 
-# Cleanup
 rm $SQL_FILE
 
 echo "Insertion complete!"
