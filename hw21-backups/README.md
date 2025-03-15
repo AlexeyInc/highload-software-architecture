@@ -1,11 +1,17 @@
 ## PostgreSQL backup strategies
 
 This project demonstrates four different backup strategies for a PostgreSQL database containing a single `books` table. 
+
 The backup strategies include:
-    1. Full backup - Using `pg_dump` to capture the entire database.
-    2. Incremental backup - Using WAL archiving to track and replay database changes.
-    3. Differential backup - Using `pg_dump --data-only` to periodically store only modified data.
-    4. Reverse Delta backup - Storing the latest full dump and applying WAL logs to roll back step-by-step.
+
+1. Full backup - Using `pg_dump` to capture the entire database.
+2. Incremental backup - Using WAL archiving to track and replay database changes.
+3. Differential backup - Using `pg_dump --data-only` to periodically store only modified data.
+4. Reverse Delta backup - Storing the latest full dump and applying WAL logs to roll back step-by-step.
+
+___
+
+### Example of usage
 
 **1. Full backup using `pg_dump`**
 
@@ -197,7 +203,7 @@ ___
 
 ## Comparison
 
-| Backup Type                           | Size     | Restore Speed         | Rollback Ability               | Cost                           |
+| Backup Type                           | Size     | Restore Speed        | Rollback Ability               | Cost                           |
 |---------------------------------------|---------|----------------------|--------------------------------|-------------------------------|
 | **Full (pg_dump)**                    | Large   | Fast                 | Only to last backup            | Storage cost for full backup  |
 | **Incremental (WAL)**                 | Small   | Fast (Point-in-time) | Precise rollback               | Requires WAL archiving setup  |
@@ -205,6 +211,9 @@ ___
 | **Reverse Delta (pg_dump + WAL)**      | Efficient | Moderate           | Can roll back step-by-step     | Storage cost for WAL          |
 
 **Full backup** – suitable for small amounts of data or infrequent backups.
+
 **Incremental** – saves storage space but is complex to restore. Suitable for large, frequently changing data.
+
 **Differential** – a compromise between Full and Incremental, suitable for medium-sized data.
+
 **Reverse Delta** – convenient when fast recovery of the latest version is important (e.g., for cloud services or CDNs).
