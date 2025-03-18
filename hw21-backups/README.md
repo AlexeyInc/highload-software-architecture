@@ -208,7 +208,7 @@ ___
 | **Full (pg_dump)**                    | Large   | Fast                 | Only to last backup            | Storage cost for full backup  |
 | **Incremental (WAL)**                 | Small   | Fast (Point-in-time) | Precise rollback               | Requires WAL archiving setup  |
 | **Differential (pg_dump --data-only)** | Medium  | Moderate             | Only to last diff backup       | Saves space, but slower rollback |
-| **Reverse Delta (pg_dump + WAL)**      | Efficient | Moderate           | Can roll back step-by-step     | Storage cost for WAL          |
+| **Reverse Delta (pg_dump + WAL)**      | Medium (Depends on change frequency; WAL grows quickly) | Moderate           | Step-by-step rollback to previous known snapshots | Storage cost for WAL          |
 
 **Full backup** – suitable for small amounts of data or infrequent backups.
 
